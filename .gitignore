@@ -3,4 +3,19 @@ __pycache__/
 .ipynb_checkpoints/
 *.pyc
 
+# Local tooling and caches
+.tmp/
+.uv-cache/
+.uv-cache-check/
+.pytest_cache/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Downloaded benchmark data and derived per-user exports
 data/raw/
+results/eda_05/candidate_report.csv
