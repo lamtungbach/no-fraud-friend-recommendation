@@ -1,0 +1,18 @@
+{
+  "seed": 42,
+  "train_ratio": 0.7,
+  "val_ratio": 0.15,
+  "test_ratio": 0.15,
+  "negative_ratio": 1,
+  "k_values": [
+    5,
+    10,
+    20
+  ],
+  "directed_strategy": "out_out",
+  "max_positive_pairs": 100,
+  "ranking_negatives_per_query": 30,
+  "hard_negative_fallback": "skip",
+  "runtime_seconds": 32.17081959999632,
+  "evaluation_stage": "test_after_validation_pipeline_check"
+}

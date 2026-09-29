@@ -1,0 +1,18 @@
+{
+  "directed": {
+    "train_size": 288802,
+    "val_size": 61886,
+    "test_size": 61887,
+    "hidden_positive_count": 123773,
+    "edges_removed_by_leakage_mask": 159816,
+    "isolated_nodes_after_split": 1031
+  },
+  "mutual": {
+    "train_size": 59877,
+    "val_size": 12831,
+    "test_size": 12832,
+    "hidden_positive_count": 25663,
+    "edges_removed_by_leakage_mask": 51326,
+    "isolated_nodes_after_split": 796
+  }
+}

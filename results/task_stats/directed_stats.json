@@ -1,0 +1,20 @@
+{
+  "task_name": "directed_connection",
+  "num_nodes": 10199,
+  "num_positive_edges_or_pairs": 412575,
+  "num_nodes_with_at_least_one_target_connection": 9418,
+  "average_degree": 80.90499068536131,
+  "isolated_nodes": 781,
+  "connected_components": 787,
+  "directed": true,
+  "target_relation": "friends",
+  "target_relation_id": 1,
+  "selected_relation_ids": [
+    1
+  ],
+  "inverse_equivalent_relation_ids": [
+    0
+  ],
+  "interaction_relations_excluded": true,
+  "num_directed_target_edges": 412575
+}

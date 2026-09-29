@@ -1,0 +1,21 @@
+metric,value
+human users analyzed,7451.0
+human users with no candidate,4.0
+human users with >=1 candidate,7447.0
+human users with >=1 bot candidate,7447.0
+percentage with >=1 bot candidate,0.9994631593074755
+bot_candidate_count_mean,1848.5316064957724
+bot_candidate_count_median,1962.0
+bot_candidate_count_p90,2335.0
+bot_candidate_count_p95,2401.0
+bot_candidate_count_max,2568.0
+bot_candidate_ratio_mean,0.24615991854895333
+bot_candidate_ratio_median,0.24945848375451263
+bot_candidate_ratio_p90,0.2688020650005866
+bot_candidate_ratio_p95,0.2740589635525418
+bot_candidate_ratio_max,0.3347826086956522
+candidate_count_mean,7424.250301972889
+candidate_count_median,7901.0
+candidate_count_p90,8910.0
+candidate_count_p95,9065.0
+candidate_count_max,9529.0

@@ -1,0 +1,49 @@
+{
+  "seed": 42,
+  "task": "mutual_connection",
+  "source_user": 9841,
+  "held_out_positive": 4570,
+  "held_out_positive_rank": 5,
+  "two_hop_candidate_count": 577,
+  "shown_bridges": [
+    2674,
+    2153,
+    7118,
+    726,
+    2806,
+    3545
+  ],
+  "recommendations": [
+    {
+      "rank": 1,
+      "node_id": 1578,
+      "common_neighbors_score": 9.0,
+      "is_held_out_positive": false
+    },
+    {
+      "rank": 2,
+      "node_id": 3285,
+      "common_neighbors_score": 8.0,
+      "is_held_out_positive": false
+    },
+    {
+      "rank": 3,
+      "node_id": 5417,
+      "common_neighbors_score": 8.0,
+      "is_held_out_positive": false
+    },
+    {
+      "rank": 4,
+      "node_id": 4175,
+      "common_neighbors_score": 7.0,
+      "is_held_out_positive": false
+    },
+    {
+      "rank": 5,
+      "node_id": 4570,
+      "common_neighbors_score": 7.0,
+      "is_held_out_positive": true
+    }
+  ],
+  "image": "results/sprint_1_demo/networkx_mutual_pymk_example.png"
+}
