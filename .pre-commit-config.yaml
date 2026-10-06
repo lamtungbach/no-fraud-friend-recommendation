@@ -1,0 +1,34 @@
+repos:
+  # 1. Cơ bản: Kiểm tra dung lượng file, merge conflict, khoảng trắng
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # 2. Secret Scan: Gitleaks (Chặn lộ credentials, tokens, API keys)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  # 3. SAST: Bandit (Quét lỗ hổng bảo mật trong mã nguồn Python)
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.3
+    hooks:
+      - id: bandit
+        args: ['-ll']
+        files: ^src/
+
+  # 4. Dependency Scan: pip-audit (Quét lỗ hổng CVE trong requirements.txt)
+  - repo: local
+    hooks:
+      - id: pip-audit
+        name: pip-audit
+        entry: pip-audit -r requirements.txt --no-deps --disable-pip
+        language: system
+        files: ^requirements\.txt$
+        pass_filenames: false

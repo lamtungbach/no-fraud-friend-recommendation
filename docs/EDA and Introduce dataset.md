@@ -25,12 +25,12 @@ Future ranking / Top-K recommendations
 PYMK trả lời:
 
 > User nào có thể là connection tiềm năng?
-> 
+>
 
 Trust component trả lời:
 
 > Trong các candidate đó, account nào cần được xem xét thận trọng hơn?
-> 
+>
 
 Trong PoC hiện tại, nhãn bot dùng để minh họa câu hỏi thứ hai. Đây chưa phải hệ thống phát hiện fraud thực tế.
 
@@ -100,7 +100,7 @@ File: notebooks/01_data_inspection.ipynb
 Notebook 01 trả lời:
 
 > File có tồn tại, đọc được và có đúng schema không?
-> 
+>
 
 Nó kiểm tra:
 
@@ -159,7 +159,7 @@ Relation friends có ID 1 và có 412,575 edge rows.
 Dataset load được, các tensor có shape hợp lý, edge và label cùng node space:
 
 ```
-number of nodes = 10,199 
+number of nodes = 10,199
 number of labels = 10,199
 number of feature rows = 10,199
 ```
@@ -169,7 +169,7 @@ number of feature rows = 10,199
 - mỗi node(user) sẽ có 1 ID duy nhất
 - Để mô hình xử lý đúng, mọi thông tin liên quan đều phải “align” theo node ID.
 
-**Labels:** 
+**Labels:**
 
 - mỗi node này sẽ được gán là **human/ bot và stance(pro/anti/neutral)**
 - **Stance** thể hiện quan điểm thái độ lập trường với 1 vấn đề
@@ -189,7 +189,7 @@ number of feature rows = 10,199
 Notebook 02 trả lời:
 
 > Dataset có lỗi dữ liệu nào cần xử lý trước khi phân tích graph hoặc train model không?
-> 
+>
 
 ### Các kiểm tra chính
 
@@ -276,12 +276,12 @@ File: notebooks/03_graph_eda.ipynb
 Notebook 03 chuyển câu hỏi từ:
 
 > File có đúng không?
-> 
+>
 
 sang:
 
 > Graph này có cấu trúc phù hợp cho recommendation không?
-> 
+>
 
 ### Graph semantics
 
@@ -370,7 +370,7 @@ File: notebooks/04_pymk_eda.ipynb
 Notebook 04 mô phỏng bước đầu của People You May Know:
 
 > Với một target user, tạo danh sách user chưa kết nối nhưng nằm trong vùng 2-hop.
-> 
+>
 
 ### Candidate definition chính xác
 
@@ -449,7 +449,7 @@ File: notebooks/05_fraud_aware_eda.ipynb
 Notebook 05 không train fraud model. Nó trả lời:
 
 > Candidate do PYMK sinh ra có chứa bot/suspicious account không?
-> 
+>
 
 ### Human/bot distribution
 

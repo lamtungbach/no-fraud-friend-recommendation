@@ -17,7 +17,7 @@ Non-edge = Hai user hiện chưa kết nối
 Mục tiêu của Link Prediction là:
 
 > Với một cặp user hiện chưa có edge, dự đoán xem cặp đó có khả năng hình thành edge trong tương lai hay không.
-> 
+>
 
 Có thể hiểu đơn giản:
 
@@ -25,7 +25,7 @@ Có thể hiểu đơn giản:
 Current Graph
     │
     ▼
-Find Non-edges 
+Find Non-edges
     │
     ▼
 Estimate Link Likelihood
@@ -182,7 +182,7 @@ Hiện tại:
 Ta có thể hỏi:
 
 > Edge `(Bach, Nam)` có khả năng xuất hiện hay không?
-> 
+>
 
 ---
 
@@ -204,14 +204,14 @@ Shortest Path
 1. **Common Neighbors**
     - Ý tưởng: Hai nút càng có nhiều hàng xóm chung thì càng có khả năng kết nối với nhau.
     - Công thức:
-        
+
         $$
         CN(u,v)=∣N(u)∩N(v)∣
         $$
-        
-    
+
+
     Trong đó N(u) là tập hàng xóm của nút u.
-    
+
 2. **Jaccard Coefficient**
 - **Chuẩn hóa số lượng hàng xóm chung**: thay vì chỉ đếm (như Common Neighbors), Jaccard tính tỷ lệ, giúp công bằng hơn khi so sánh các nút có độ lớn khác nhau.
 - **Score nằm trong khoảng [0,1]**:
@@ -219,11 +219,11 @@ Shortest Path
     - 1 → tất cả hàng xóm đều chung
 - Ý tưởng: Đo tỷ lệ hàng xóm chung so với tổng số hàng xóm.
 - Công thức:
-    
+
     $$
     J(u,v) = \frac{|N(u) \cap N(v)|}{|N(u) \cup N(v)|}
     $$
-    
+
 - Ưu điểm: Chuẩn hóa số lượng hàng xóm chung, tránh thiên lệch khi một nút có quá nhiều hàng xóm.
 - Nếu A có 100 bạn, B có 5 bạn, và họ có 3 bạn chung → Jaccard sẽ phản ánh mức độ tương đồng thấp hơn so với Common Neighbors.
     - **Common Neighbors** chỉ đơn giản đếm số bạn chung.
@@ -374,7 +374,7 @@ Ví dụ:
 Model cần học được:
 
 > Những cặp node thực sự có relationship thường có cấu trúc hoặc feature như thế nào?
-> 
+>
 
 Ví dụ:
 
@@ -420,12 +420,12 @@ Hai khái niệm này liên quan nhưng không hoàn toàn giống nhau.
 **Non-edge**:
 
 > Bất kỳ cặp node nào hiện tại chưa có edge.
-> 
+>
 
 **Negative edge / negative sample**:
 
 > Một non-edge được chọn làm mẫu negative trong quá trình train hoặc evaluation.
-> 
+>
 
 Do graph có thể chứa rất nhiều non-edge nên ta thường không sử dụng toàn bộ.
 
@@ -468,7 +468,7 @@ tuần sau trở thành bạn
 Do đó, trong Link Prediction:
 
 > Non-edge thường chỉ có nghĩa là **chưa quan sát thấy edge ở thời điểm hiện tại**.
-> 
+>
 
 Đây là lý do Link Prediction khác với classification thông thường.
 
@@ -553,7 +553,7 @@ theo nghĩa trực giác.
 Lưu ý:
 
 > Không phải mọi scoring method đều trả về một probability chuẩn hóa.
-> 
+>
 
 Ví dụ:
 
@@ -721,7 +721,7 @@ thì ranking:
 Một cách phổ biến để đánh giá Link Prediction là:
 
 > Lấy graph đã biết, giấu một phần edge rồi xem model có tìm lại được chúng không.
-> 
+>
 
 Giả sử graph gốc:
 
@@ -803,7 +803,7 @@ Trong đó:
 Label = 1
 ```
 
-nghĩa là positive edge.(“đây là kết nối thật” , những cạnh thực sự trong đồ thị) 
+nghĩa là positive edge.(“đây là kết nối thật” , những cạnh thực sự trong đồ thị)
 
 ```
 Label = 0
@@ -870,7 +870,7 @@ edge / no edge
 Ta muốn biết:
 
 > Trong hàng nghìn candidate, ai nên được recommend trước?
-> 
+>
 
 Do đó output thực tế thường là:
 
@@ -894,7 +894,7 @@ Top-k
 Vì vậy, với PYMK:
 
 > Link Prediction nên được hiểu vừa là **dự đoán liên kết**, vừa là **ranking candidate links**.
-> 
+>
 
 ---
 
@@ -907,7 +907,7 @@ Hai bước này không giống nhau.
 Trả lời:
 
 > Ta nên xét những node nào?
-> 
+>
 
 Ví dụ:
 
@@ -928,7 +928,7 @@ $$
 Trả lời:
 
 > Trong các candidate này, candidate nào tốt hơn?
-> 
+>
 
 Input:
 
@@ -971,7 +971,7 @@ Top-k
 Đây là điểm rất quan trọng:
 
 > **Candidate Generation giảm search space. Link Prediction phân biệt và ranking các candidate trong search space đó.**
-> 
+>
 
 ---
 

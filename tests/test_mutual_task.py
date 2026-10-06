@@ -15,4 +15,3 @@ def test_mutual_task_canonicalizes_reciprocal_pairs():
     assert task.directed is False
     assert task.positive_edges.tolist() == [[0, 1]]
     assert task.metadata["mutual_ratio"] == 2 / 3
-

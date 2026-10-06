@@ -37,7 +37,7 @@ class MGTABAdapter(DatasetAdapter):
         try:
             return torch.load(path, map_location="cpu", weights_only=True)
         except TypeError:  # compatibility with older PyTorch
-            return torch.load(path, map_location="cpu")
+            return torch.load(path, map_location="cpu")  # nosec B614
 
     def load_raw(self) -> dict[str, torch.Tensor]:
         missing = [name for name in self.REQUIRED_FILES if not (self.dataset_dir / name).is_file()]

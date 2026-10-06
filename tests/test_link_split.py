@@ -12,4 +12,3 @@ def test_split_is_disjoint_and_reproducible():
     assert sets[0].isdisjoint(sets[1])
     assert sets[0].isdisjoint(sets[2])
     assert sets[1].isdisjoint(sets[2])
-

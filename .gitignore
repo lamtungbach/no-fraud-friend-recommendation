@@ -18,4 +18,17 @@ __pycache__/
 
 # Downloaded benchmark data and derived per-user exports
 data/raw/
+data/*.csv
+!data/.gitkeep
 results/eda_05/candidate_report.csv
+
+# Test coverage
+.coverage
+htmlcov/
+
+# Model weights & checkpoints
+weights/
+*.pt
+*.pth
+*.onnx
+*.bin
