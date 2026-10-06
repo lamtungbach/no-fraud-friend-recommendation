@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiến trúc Trust & Fraud Detection Service</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --code-bg: #f1f5f9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 30px 20px;
+    }
+
+    .container {
+      max-width: 1060px;
+      margin: 0 auto;
+    }
+
+    header {
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .section {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 800px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .box h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #334155;
+    }
+
+    .mermaid {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 8px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface);
+      color: #334155;
+      font-weight: 600;
+    }
+
+    code {
+      font-family: Consolas, monospace;
+      font-size: 0.84rem;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #0f172a;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: Consolas, monospace;
+      font-size: 0.83rem;
+      line-height: 1.45;
+      color: #1e293b;
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+
+    .status-ok {
+      color: #15803d;
+      font-weight: 600;
+    }
+
+    .status-block {
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    ul {
+      padding-left: 18px;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <header>
+      <span class="tag">FASTAPI BACKEND SERVICE</span>
+      <h1>Trust & Fraud Detection Service</h1>
+      <p class="subtitle">Kiến trúc chi tiết hệ thống Thẩm định Tín nhiệm & Phát hiện Gian lận Người dùng (Cổng 8000)
+      </p>
+    </header>
+
+    <!-- 1. Kiến trúc Hệ thống -->
+    <div class="section">
+      <h2>1. Kiến trúc Tổng thể Service</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted);">
+        Service vận hành độc lập theo mô hình REST API với 4 thành phần nội tại:
+      </p>
+
+      <div class="mermaid">
+        graph TB
+        Caller["Caller (Client / External Service)"]
+
+        subgraph TrustApp["Trust & Fraud Detection Service (FastAPI)"]
+        Router["API Router (/api/v1)"]
+        Service["TrustService (Business Logic)"]
+        Cache[("In-Memory Cache (RAM)<br />10.199 User Profiles")]
+        Agent["Trust Agent (Reasoning)"]
+        Models["R-GCN Classifier + 4 Pillars"]
+        end
+
+        Caller -->|"HTTP POST / GET (JSON)"| Router
+        Router --> Service
+        Service <-->|"Tra cứu O(1)"| Cache
+          Router --> Agent
+          Agent --> Models
+          Service -->|"HTTP 200 (JSON)"| Caller
+      </div>
+    </div>
+
+    <!-- 2. Mô hình Đánh giá & Phân tầng -->
+    <div class="section">
+      <h2>2. Cơ chế Đánh giá Tín nhiệm & Phân tầng</h2>
+      <div class="grid-2">
+        <div class="box">
+          <h3>Điểm Tín nhiệm (S_trust)</h3>
+          <p style="font-size: 0.88rem; color: #475569; margin-bottom: 8px;">
+            Kết hợp xác suất Bot từ mô hình <code>R-GCN</code> và 4 trụ cột hành vi:
+          </p>
+          <pre>S_trust = 100 * (1 - P_bot) *
+  [0.35*S_auth + 0.25*S_interact +
+   0.25*S_network + 0.15*S_content]</pre>
+          <ul style="margin-top: 10px;">
+            <li><code>S_auth</code>: Xác thực danh tính</li>
+            <li><code>S_interact</code>: Độ lành mạnh tương tác</li>
+            <li><code>S_network</code>: Độ sạch mạng lưới liên kết</li>
+            <li><code>S_content</code>: Mức độ an toàn nội dung</li>
+          </ul>
+        </div>
+
+        <div class="box">
+          <h3>Chính sách Phân tầng Quyết định</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Phân tầng</th>
+                <th>Tiêu chí</th>
+                <th>Quyết định</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Tier 1</strong></td>
+                <td>S_trust ≥ 80, P_bot &lt; 0.1</td>
+                <td><span class="status-ok">Cho phép (Verified)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Tier 2</strong></td>
+                <td>S_trust ≥ 60, P_bot &lt; 0.3</td>
+                <td><span class="status-ok">Cho phép (Standard)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Tier 3</strong></td>
+                <td>S_trust 40..60 hoặc P_bot 0.3..0.5</td>
+                <td><span class="status-block">Loại bỏ (Caution)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Tier 4</strong></td>
+                <td>S_trust &lt; 40 hoặc P_bot ≥ 0.5</td>
+                <td><span class="status-block">Cách ly (Fraud/Bot)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Danh sách Endpoints -->
+    <div class="section">
+      <h2>3. Danh mục Endpoint REST API</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 80px;">Method</th>
+            <th style="width: 320px;">Endpoint</th>
+            <th>Mục đích</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/api/v1/recommendations/safe-filter</code></td>
+            <td>Lọc danh sách ứng viên kết bạn, loại bỏ Tier 3 và Tier 4</td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/api/v1/trust/batch</code></td>
+            <td>Thẩm định và trả thông số tín nhiệm cho danh sách User ID</td>
+          </tr>
+          <tr>
+            <td><code>GET</code></td>
+            <td><code>/api/v1/trust/{user_id}</code></td>
+            <td>Tra cứu thông tin tín nhiệm của 1 User ID</td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/api/v1/trust/check</code></td>
+            <td>Tra cứu thông tin tín nhiệm qua JSON request body</td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
+            <td><code>/api/v1/trust/reason</code></td>
+            <td>Thẩm định chuyên sâu và sinh Reasoning Trace giải thích quyết định</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 4. Luồng xử lý chi tiết Endpoint /safe-filter -->
+    <div class="section">
+      <h2>4. Luồng Xử lý Endpoint /safe-filter (Core Flow)</h2>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">
+        Quy trình tiếp nhận request, tra cứu bộ nhớ và lọc ứng viên:
+      </p>
+
+      <div class="mermaid">
+        sequenceDiagram
+        autonumber
+        participant Caller as Caller (External)
+        participant Router as FastAPI Router
+        participant Cache as In-Memory Cache (RAM)
+
+        Caller->>Router: POST /api/v1/recommendations/safe-filter
+        Note over Caller,Router: Payload: target_user_id, candidate_user_ids: [105, 308, 512, 888]
+
+        loop Với từng candidate ID
+        Router->>Cache: Tra cứu hồ sơ (O(1))
+        Cache-->>Router: P_bot, S_trust, Tier
+        alt Tier 1 hoặc Tier 2
+        Note over Router: Giữ lại (clean_candidates)
+        else Tier 3 hoặc Tier 4
+        Note over Router: Loại bỏ (filtered_count + 1)
+        end
+        end
+
+        Router-->>Caller: HTTP 200 OK (JSON Data)
+        Note over Caller,Router: Output: clean_candidates: [105, 308], filtered_count: 2
+      </div>
+
+      <!-- Minh họa dữ liệu I/O tối giản -->
+      <div class="grid-2" style="margin-top: 14px;">
+        <div class="box">
+          <h3>Đầu vào (Request Body)</h3>
+          <pre>{
+  "target_user_id": 100,
+  "candidate_user_ids": [105, 308, 512, 888]
+}</pre>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+            Được validate tự động bằng Pydantic schema (<code>SafeFilterRequest</code>).
+          </p>
+        </div>
+
+        <div class="box">
+          <h3>Đầu ra (Response Data)</h3>
+          <pre>{
+  "target_user_id": 100,
+  "clean_candidates": [
+    {"user_id": 105, "trust_score": 89.5, "tier": "TIER_1_..."},
+    {"user_id": 308, "trust_score": 71.2, "tier": "TIER_2_..."}
+  ],
+  "filtered_count": 2
+}</pre>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+            User 512 (Tier 3) và User 888 (Tier 4) đã được loại bỏ.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral'
+    });
+  </script>
+</body>
+
+</html>

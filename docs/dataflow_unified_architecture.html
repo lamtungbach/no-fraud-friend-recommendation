@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơ đồ Luồng Dữ liệu Hợp nhất — Recommendation (Bách) & Trust-Fraud Detection (Linh)</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Mermaid.js -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <style>
+    :root {
+      /* Giao diện Sáng sủa, Sắc nét, Hiện đại */
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-surface: #f1f5f9;
+      --bg-card: #ffffff;
+      --border-color: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --border-hover: #38bdf8;
+
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-sub: #475569;
+
+      --accent-cyan: #0284c7;
+      --accent-blue: #2563eb;
+      --accent-emerald: #059669;
+      --accent-amber: #d97706;
+      --accent-rose: #e11d48;
+      --accent-purple: #7c3aed;
+      --accent-indigo: #4f46e5;
+
+      --badge-bach: #0284c7;
+      --badge-bach-bg: #e0f2fe;
+      --badge-linh: #7c3aed;
+      --badge-linh-bg: #f3e8ff;
+      --badge-bridge: #059669;
+      --badge-bridge-bg: #d1fae5;
+
+      --code-bg: #f8fafc;
+      --card-radius: 12px;
+      --box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    /* Header */
+    .header-wrapper {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .container {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 16px 0;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #0284c7, #7c3aed);
+      color: #ffffff;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+
+    .title-group h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .title-group p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid var(--border-color);
+      padding: 8px 0;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 18px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--accent-cyan);
+      background: #f1f5f9;
+    }
+
+    .tab-btn.active {
+      color: #0369a1;
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+    }
+
+    /* Tab Content Animation */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.25s ease;
+      margin-top: 24px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 2fr 1.1fr;
+      gap: 24px;
+      box-shadow: var(--box-shadow);
+    }
+
+    .badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .tag-bach {
+      color: var(--badge-bach);
+      background: var(--badge-bach-bg);
+      border: 1px solid #bae6fd;
+    }
+
+    .tag-linh {
+      color: var(--badge-linh);
+      background: var(--badge-linh-bg);
+      border: 1px solid #e9d5ff;
+    }
+
+    .tag-bridge {
+      color: var(--badge-bridge);
+      background: var(--badge-bridge-bg);
+      border: 1px solid #a7f3d0;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--box-shadow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Mermaid Container - Bright, Clean & High Contrast */
+    .mermaid-box {
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      padding: 24px;
+      overflow-x: auto;
+      text-align: center;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+
+      .grid-2,
+      .grid-3,
+      .hero-banner {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Code & Tables */
+    pre,
+    code {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+    }
+
+    pre {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      color: #1e293b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      background: #ffffff;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border-color);
+      padding: 12px 14px;
+      text-align: left;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    td code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.82rem;
+      color: #0284c7;
+      font-weight: 600;
+    }
+
+    /* Interactive Simulation Widget */
+    .sim-panel {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .sim-input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .sim-input {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+    }
+
+    .sim-input:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .btn-submit {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-submit:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    .sim-result-box {
+      border-top: 1px dashed var(--border-color);
+      padding-top: 16px;
+      margin-top: 16px;
+    }
+
+    .candidate-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.83rem;
+      margin: 4px;
+      font-weight: 700;
+    }
+
+    .pill-pass {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .pill-block {
+      background: #ffe4e6;
+      color: #9f1239;
+      border: 1px solid #fca5a5;
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container" style="padding-top: 24px;">
+
+    <!-- ================= TAB 1: SƠ ĐỒ HỢP NHẤT TỔNG THỂ ================= -->
+    <div id="tab-unified" class="tab-content active" style="margin-top: 24px;">
+      <div class="card">
+        <div class="card-header" style="margin-bottom: 16px; border-bottom: none; padding-bottom: 0;">
+          <div class="card-title">
+            <span>🌐 Sơ đồ Luồng Dữ liệu Hợp nhất (End-to-End Unified Data-Flow)</span>
+          </div>
+        </div>
+
+        <div class="mermaid-box">
+          <pre class="mermaid">
+flowchart TD
+    %% Định nghĩa các Style Class Sáng sủa, Tương phản cao
+    classDef contractStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e;
+    classDef bachStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1;
+    classDef bridgeStyle fill:#d1fae5,stroke:#059669,stroke-width:2px,color:#065f46;
+    classDef linhStyle fill:#f3e8ff,stroke:#7c3aed,stroke-width:2px,color:#5b21b6;
+    classDef finalStyle fill:#ecfdf5,stroke:#10b981,stroke-width:3px,color:#047857;
+
+    %% TẦNG DỮ LIỆU GỐC
+    subgraph S0["0. TẦNG DỮ LIỆU DÙNG CHUNG (CANONICAL SCHEMA)"]
+        RawTensors["Raw MGTAB Tensors (.pt)<br/>edge_index, edge_type, features (788-dim)"]:::contractStyle
+        Adapter["MGTABAdapter<br/>src/data/adapters/mgtab_adapter.py"]:::contractStyle
+        CanonicalGraph[("CanonicalGraph Contract<br/>10.199 nodes, 7 relations, 788 features")]:::contractStyle
+        RawTensors -->|"[1] Đọc Raw Tensors"| Adapter
+        Adapter -->|"[2] Nạp Graph Contract"| CanonicalGraph
+    end
+
+    %% PHÂN HỆ RECOMMENDATION CỦA BẠN BÁCH
+    subgraph S1["1. PHÂN HỆ GỢI Ý BẠN BÈ — PYMK ENGINE "]
+        TaskDef["Định nghĩa Bài toán Liên kết<br/>DirectedConnectionTask / MutualConnectionTask"]:::bachStyle
+        SplitMask["Split & Leakage Masking<br/>70/15/15 Split + Masking Test/Val Positives"]:::bachStyle
+        ObservedGraph[("Observed Graph<br/>Đồ thị quan sát chống rò rỉ")]:::bachStyle
+        CandidateGen["Sinh Ứng viên 2-Hop<br/>TwoHopCandidateGenerator<br/>C(u) = N(N(u)) - N(u) - {u}"]:::bachStyle
+        NegSampling["Lấy mẫu Negative<br/>Random & Hard Negatives"]:::bachStyle
+        TopScorers["Tính Điểm Liên kết Topology<br/>Common Neighbors, Jaccard, Adamic-Adar, PA"]:::bachStyle
+        RawRanker["Xếp hạng Ứng viên Thô (Raw Top-K)<br/>Sắp xếp theo Score_link(u, v)"]:::bachStyle
+
+        TaskDef -->|"[4] Ẩn cạnh kiểm thử"| SplitMask
+        SplitMask -->|"[5] Đồ thị chống rò rỉ"| ObservedGraph
+        ObservedGraph -->|"[6a] Duyệt bạn của bạn"| CandidateGen
+        ObservedGraph -->|"[6b] Lấy mẫu âm"| NegSampling
+        CandidateGen & NegSampling -->|"[7] Ghép cặp ứng viên"| TopScorers
+        TopScorers -->|"[8] Điểm liên kết Score_link"| RawRanker
+    end
+
+    %% CẦU NỐI TÍCH HỢP
+    subgraph S2["2. CẦU NỐI BỘ LỌC AN TOÀN (SAFE FILTER INTERFACE)"]
+        SafeGateway["API Router: POST /api/v1/recommendations/safe-filter<br/>(src/api/routers/trust.py)<br/>Payload: target_user_id & candidate_user_ids"]:::bridgeStyle
+    end
+
+    %% PHÂN HỆ TRUST & FRAUD DETECTION
+    subgraph S3["3. PHÂN HỆ THẨM ĐỊNH TÍN NHIỆM & PHÁT HIỆN GIAN LẬN"]
+        RGCN["Mạng nơ-ron Đồ thị R-GCN<br/>FraudDetectionRGCN (7 quan hệ)<br/>Dự đoán xác suất P_bot(v)"]:::linhStyle
+        Pillars["Engine 4 Trụ cột Hành vi<br/>S_auth, S_interact, S_network, S_content"]:::linhStyle
+        ScoringCore["Tính Điểm & Phân Tầng<br/>calculate_trust_score & classify_trust_tier<br/>S_trust = 100 * G_auth * Σ(w_i * S_i)"]:::linhStyle
+        TrustProfiles[("In-Memory Cache (RAM)<br/>10.199 Hồ sơ Tín nhiệm<br/>Tra cứu tức thì O(1)")]:::linhStyle
+        TrustService["TrustService.filter_safe_candidates()<br/>- Giữ lại: Tier 1 (Verified) & Tier 2 (Standard)<br/>- Loại bỏ: Tier 3 (Caution) & Tier 4 (Fraud/Bot)"]:::linhStyle
+        AgentTrace["TrustAgent.inspect_and_reason()<br/>Multi-step Reasoning Trace (Explainable AI)"]:::linhStyle
+
+        RGCN -->|"[8a] Xác suất P_bot"| ScoringCore
+        Pillars -->|"[8b] Điểm 4 Trụ cột"| ScoringCore
+        ScoringCore -->|"[9] Nạp sẵn Cache O(1)"| TrustProfiles
+        TrustProfiles <-->|"[12] Tra cứu O(1) &lt; 2ms"| TrustService
+        TrustService -.->|"[13] Truy vết giải trình"| AgentTrace
+    end
+
+    %% TẦNG PHỤC VỤ NGƯỜI DÙNG
+    subgraph S4["4. KẾT QUẢ ĐỀ XUẤT AN TOÀN CHO NGƯỜI DÙNG"]
+        FinalRecs["Danh sách Gợi ý Bạn bè An toàn (No-Fraud PYMK)<br/>Score_final(u, v) = Score_link(u, v) * (S_trust(v) / 100)"]:::finalStyle
+    end
+
+    %% LIÊN KẾT GIỮA CÁC PHÂN HỆ
+    CanonicalGraph -->|"[3] Khởi tạo bài toán liên kết"| TaskDef
+    CanonicalGraph -->|"[7a] Lan truyền 7 quan hệ"| RGCN
+    CanonicalGraph -->|"[7b] Trích xuất đặc trưng nút"| Pillars
+
+    RawRanker -->|"[10] Gửi Top-K Candidates"| SafeGateway
+    SafeGateway -->|"[11] Forward sang Trust Service"| TrustService
+    TrustService -->|"[14] Danh sách sạch Tier 1 &amp; Tier 2"| FinalRecs
+          </pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: SEQUENCE FLOW ================= -->
+    <div id="tab-sequence" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🔄 Biểu đồ Tuần tự Xử lý (Request/Response Sequence Flow)</span>
+          </div>
+          <span class="badge-tag tag-bridge">Độ trễ phục vụ &lt; 15ms</span>
+        </div>
+        <p style="font-size: 0.92rem; color: var(--text-sub); margin-bottom: 16px;">
+          Sơ đồ chi tiết trình tự gọi hàm và trao đổi thông điệp khi Người dùng yêu cầu đề xuất bạn bè trên mạng xã hội:
+        </p>
+
+        <div class="mermaid-box">
+          <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as Người dùng (Client)
+    participant RecEngine as PYMK Rec Engine (Bách)
+    participant TwoHop as TwoHopCandidateGenerator
+    participant Scorer as Topology Scorer (Adamic-Adar)
+    participant API as FastAPI Router (/safe-filter)
+    participant TrustService as TrustService (Linh)
+    participant Cache as In-Memory Cache (RAM)
+    participant Agent as TrustAgent (Explainable)
+
+    User->>RecEngine: Yêu cầu gợi ý kết bạn cho User 100
+    activate RecEngine
+
+    %% Phần bạn Bách
+    RecEngine->>TwoHop: generate(source_node=100)
+    TwoHop-->>RecEngine: Danh sách 2-hop: [105, 308, 512, 888]
+
+    RecEngine->>Scorer: score_candidates(100, [105, 308, 512, 888])
+    Scorer-->>RecEngine: Điểm topo: 888 (3.5), 105 (2.8), 512 (2.4), 308 (1.9)
+    Note over RecEngine: User 888 có điểm topo cao nhất do kết nối spam nhiều!
+
+    %% Chuyển qua Bộ lọc An toàn
+    RecEngine->>API: POST /api/v1/recommendations/safe-filter<br/>{target_user: 100, candidates: [888, 105, 512, 308]}
+    activate API
+    API->>TrustService: filter_safe_candidates(100, [888, 105, 512, 308])
+    activate TrustService
+
+    %% Tra cứu Cache O(1)
+    loop Với từng Candidate ID
+        TrustService->>Cache: get(user_id) [Tra cứu O(1)]
+        Cache-->>TrustService: {trust_score, p_bot, recommendation_tier}
+    end
+
+    Note over TrustService: - User 105: Tier 1 (Verified) -> GIỮ LẠI<br/>- User 308: Tier 2 (Standard) -> GIỮ LẠI<br/>- User 512: Tier 3 (Caution) -> LOẠI BỎ<br/>- User 888: Tier 4 (Fraud/Bot, P_bot=92%) -> CHẶN NGAY!
+
+    TrustService-->>API: SafeFilterResponse (clean: [105, 308], filtered: [888, 512])
+    deactivate TrustService
+    API-->>RecEngine: HTTP 200 OK (Danh sách an toàn đã lọc)
+    deactivate API
+
+    %% Xếp hạng cuối cùng
+    RecEngine->>RecEngine: Score_final = Score_link * (Trust_score / 100)
+    RecEngine-->>User: Hiển thị Top Bạn Bè An Toàn: [User 105, User 308]
+    deactivate RecEngine
+
+    %% Trường hợp Admin cần giải thích
+    opt Admin kiểm tra lý do chặn User 888
+        User->>API: POST /api/v1/trust/reason {user_id: 888}
+        API->>Agent: inspect_and_reason(888)
+        Agent-->>API: Reasoning Trace: ["Xác suất Bot 92% từ R-GCN", "Spam Mention cao"]
+        API-->>User: HTTP 200 OK (Chi tiết vết suy luận)
+    end
+          </pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 3: MODULE SPECS ================= -->
+    <div id="tab-modules" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>🧩 Đặc tả Chi tiết Từng Module Trong Luồng Dữ Liệu</span>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 220px;">Module / Tệp Nguồn</th>
+              <th style="width: 140px;">Phân Hệ</th>
+              <th style="width: 250px;">Input Data</th>
+              <th style="width: 230px;">Output Data</th>
+              <th>Vai trò &amp; Thuật toán</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>src/data/canonical_graph.py</code></td>
+              <td><span class="badge-tag tag-bridge">Chung</span></td>
+              <td>Raw Tensors (.pt) từ MGTAB</td>
+              <td><code>CanonicalGraph</code> Contract</td>
+              <td>Chuẩn hoá 10.199 nodes, 7 relation types, 788 features độc lập với định dạng thô.</td>
+            </tr>
+            <tr>
+              <td><code>src/tasks/base_link_task.py</code></td>
+              <td><span class="badge-tag tag-bach">Bách</span></td>
+              <td><code>CanonicalGraph</code></td>
+              <td><code>TaskGraph</code> (Directed/Mutual)</td>
+              <td>Xây dựng đồ thị bài toán liên kết có hướng hoặc proxy bạn bè tương hỗ 2 chiều.</td>
+            </tr>
+            <tr>
+              <td><code>src/split/leakage_mask.py</code></td>
+              <td><span class="badge-tag tag-bach">Bách</span></td>
+              <td><code>TaskGraph</code>, Train/Val/Test Splits</td>
+              <td><code>observed_graph</code></td>
+              <td>Ẩn cạnh dương của tập kiểm thử để triệt tiêu hoàn toàn Data Leakage.</td>
+            </tr>
+            <tr>
+              <td><code>src/candidates/two_hop.py</code></td>
+              <td><span class="badge-tag tag-bach">Bách</span></td>
+              <td><code>source_node</code>, <code>observed_graph</code></td>
+              <td><code>Set[candidate_nodes]</code></td>
+              <td>Duyệt mạng lưới bạn của bạn: <code>N(N(u)) - N(u) - {u}</code>.</td>
+            </tr>
+            <tr>
+              <td><code>src/baselines/*.py</code></td>
+              <td><span class="badge-tag tag-bach">Bách</span></td>
+              <td>Cặp nút <code>(u, v)</code></td>
+              <td><code>Score_link(u, v)</code></td>
+              <td>Tính toán độ mạnh liên kết dựa trên Adamic-Adar, Jaccard, Common Neighbors, Preferential Attachment.
+              </td>
+            </tr>
+            <tr>
+              <td><code>src/trust/models.py</code></td>
+              <td><span class="badge-tag tag-linh">Linh</span></td>
+              <td>Node Features (788) + 7 Quan hệ cạnh</td>
+              <td>Xác suất <code>P_bot(v) ∈ [0, 1]</code></td>
+              <td>Mạng nơ-ron đồ thị R-GCN 2 tầng chuẩn hoá lan truyền thông điệp phân loại Bot.</td>
+            </tr>
+            <tr>
+              <td><code>src/trust/scoring.py</code></td>
+              <td><span class="badge-tag tag-linh">Linh</span></td>
+              <td><code>P_bot</code>, 4 Trụ cột tín nhiệm</td>
+              <td><code>S_trust</code> (0..100) &amp; <code>Tier</code></td>
+              <td>Tính điểm tín nhiệm toàn diện và phân tầng 4 mức chính sách đề xuất.</td>
+            </tr>
+            <tr>
+              <td><code>src/trust/service.py</code></td>
+              <td><span class="badge-tag tag-linh">Linh</span></td>
+              <td>Danh sách Candidate IDs từ Bách</td>
+              <td><code>SafeFilterResponse</code></td>
+              <td>In-Memory Cache tra cứu O(1), gạn lọc ứng viên sạch (Tier 1 &amp; 2), loại bỏ Tier 3 &amp; 4.</td>
+            </tr>
+            <tr>
+              <td><code>src/trust/agent.py</code></td>
+              <td><span class="badge-tag tag-linh">Linh</span></td>
+              <td><code>user_id</code></td>
+              <td><code>Reasoning Trace</code></td>
+              <td>Tác tử suy luận đa bước giải thích lý do tài khoản bị gắn cờ hoặc cho phép gợi ý.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Khối công thức toán học chuẩn hóa -->
+        <div style="margin-top: 24px;">
+          <h3 style="font-size: 1.05rem; margin-bottom: 12px; color: var(--text-main);">📐 Các Công thức Toán học Cốt
+            lõi Trong Luồng:</h3>
+          <div class="grid-2">
+            <div>
+              <div style="font-size: 0.85rem; color: #7c3aed; font-weight: 700; margin-bottom: 6px;">1. Công thức Điểm
+                Tín nhiệm 4 Trụ cột (Phần Linh):</div>
+              <pre>S_trust(u) = 100 * G_auth(u) *
+   [0.35 * S_auth + 0.25 * S_interact +
+    0.25 * S_network + 0.15 * S_content]</pre>
+            </div>
+            <div>
+              <div style="font-size: 0.85rem; color: #0284c7; font-weight: 700; margin-bottom: 6px;">2. Công thức Xếp
+                hạng Bạn bè Cuối cùng (Hợp nhất Bách + Linh):</div>
+              <pre>Score_final(u, v) = Score_link(u, v) * [S_trust(v) / 100.0]
+(Trong đó: Score_link tính bởi Adamic-Adar hoặc Jaccard,
+ và v bắt buộc phải thuộc Tier 1 hoặc Tier 2)</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 4: LIVE SIMULATION ================= -->
+    <div id="tab-simulation" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span>⚡ Mô phỏng Bộ Lọc An Toàn (Safe Recommendation Simulator)</span>
+          </div>
+          <span class="badge-tag tag-bridge">Trải nghiệm tương tác trực tiếp</span>
+        </div>
+        <p style="font-size: 0.92rem; color: var(--text-sub); margin-bottom: 16px;">
+          Nhập danh sách ứng viên do Thuật toán PYMK của bạn Bách sinh ra để quan sát Bộ lọc An toàn của bạn Linh thẩm
+          định và phân tầng theo thời gian thực:
+        </p>
+
+        <div class="sim-panel">
+          <div style="font-size: 0.86rem; font-weight: 700; margin-bottom: 8px; color: #0284c7;">Danh sách Ứng viên
+            (Candidate IDs cách nhau bởi dấu phẩy):</div>
+          <div class="sim-input-row">
+            <input type="text" id="simCandidateInput" class="sim-input" value="105, 308, 512, 888, 9999"
+              placeholder="Ví dụ: 105, 308, 512, 888">
+            <button class="btn-submit" onclick="runSimulation()">🚀 Chạy Thẩm Định</button>
+          </div>
+
+          <div class="sim-result-box" id="simOutput">
+            <div style="font-size: 0.92rem; font-weight: 700; margin-bottom: 12px; color: #1e293b;">Kết Quả Phân Tầng
+              Qua Bộ Lọc:</div>
+            <div id="simCardsContainer">
+              <!-- Render kết quả tại đây -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Khởi tạo Mermaid với phong cách Sáng Sủa, Tương phản cao
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#e0f2fe',
+        primaryTextColor: '#0369a1',
+        primaryBorderColor: '#0284c7',
+        lineColor: '#475569',
+        secondaryColor: '#f3e8ff',
+        tertiaryColor: '#fef3c7',
+        background: '#ffffff',
+        mainBkg: '#ffffff',
+        nodeBorder: '#0284c7',
+        clusterBkg: '#f8fafc',
+        clusterBorder: '#cbd5e1',
+        titleColor: '#0f172a',
+        edgeLabelBackground: '#ffffff',
+        fontFamily: 'Plus Jakarta Sans',
+        fontSize: '13px',
+        actorBkg: '#ffffff',
+        actorBorder: '#0284c7',
+        actorTextColor: '#0f172a',
+        signalColor: '#0284c7',
+        signalTextColor: '#0f172a',
+        labelBoxBkgColor: '#f8fafc',
+        labelBoxBorderColor: '#cbd5e1',
+        labelTextColor: '#0f172a',
+        noteBkgColor: '#fef3c7',
+        noteBorderColor: '#f59e0b',
+        noteTextColor: '#78350f'
+      },
+      securityLevel: 'loose',
+      flowchart: { curve: 'basis', htmlLabels: true }
+    });
+
+    // Chuyển Tab
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // Dữ liệu Mock mô phỏng hồ sơ người dùng
+    const mockDb = {
+      105: { trust_score: 89.5, p_bot: 0.05, tier: "Tier 1 (Verified)", status: "PASS", desc: "Người dùng uy tín, xác minh đầy đủ." },
+      308: { trust_score: 72.3, p_bot: 0.18, tier: "Tier 2 (Standard)", status: "PASS", desc: "Người dùng thông thường, hành vi lành mạnh." },
+      512: { trust_score: 54.0, p_bot: 0.42, tier: "Tier 3 (Caution)", status: "BLOCK", desc: "Tương tác spam, tỷ lệ mention bất thường." },
+      888: { trust_score: 18.2, p_bot: 0.92, tier: "Tier 4 (Fraud/Bot)", status: "BLOCK", desc: "Cụm tài khoản ảo Botnet, R-GCN phát hiện 92%." }
+    };
+
+    function runSimulation() {
+      const raw = document.getElementById('simCandidateInput').value;
+      const ids = raw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+      const container = document.getElementById('simCardsContainer');
+      container.innerHTML = '';
+
+      let passCount = 0;
+      let blockCount = 0;
+
+      ids.forEach(id => {
+        const user = mockDb[id] || {
+          trust_score: 0.0,
+          p_bot: 0.85,
+          tier: "Tier 4 (Fraud/Zero-Trust)",
+          status: "BLOCK",
+          desc: "Chưa có hồ sơ, áp dụng chính sách Zero-Trust."
+        };
+
+        const isPass = user.status === "PASS";
+        if (isPass) passCount++; else blockCount++;
+
+        const card = document.createElement('div');
+        card.style.cssText = `
+          background: ${isPass ? '#f0fdf4' : '#fff1f2'};
+          border: 1px solid ${isPass ? '#86efac' : '#fecdd3'};
+          border-radius: 8px;
+          padding: 12px 16px;
+          margin-bottom: 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        `;
+
+        card.innerHTML = `
+          <div>
+            <div style="font-weight: 700; font-size: 0.95rem; color: #0f172a;">
+              👤 User ID: <code>${id}</code> — <span style="color: ${isPass ? '#15803d' : '#b91c1c'}">${user.tier}</span>
+            </div>
+            <div style="font-size: 0.84rem; color: #64748b; margin-top: 4px;">
+              ${user.desc} | Điểm S_trust: <strong>${user.trust_score.toFixed(1)}</strong> | P_bot: <strong>${(user.p_bot * 100).toFixed(0)}%</strong>
+            </div>
+          </div>
+          <div>
+            <span class="${isPass ? 'pill-pass' : 'pill-block'}">
+              ${isPass ? '✓ ĐỦ ĐIỀU KIỆN ĐỀ XUẤT' : '✗ ĐÃ BỊ CHẶN LOẠI BỎ'}
+            </span>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      const summary = document.createElement('div');
+      summary.style.cssText = "margin-top: 14px; font-size: 0.88rem; font-weight: 700; color: #0284c7;";
+      summary.innerText = `📊 Tổng kết: Giữ lại ${passCount} bạn bè an toàn | Loại bỏ ${blockCount} tài khoản rủi ro.`;
+      container.appendChild(summary);
+    }
+
+    // Chạy mặc định lần đầu
+    window.addEventListener('DOMContentLoaded', runSimulation);
+  </script>
+</body>
+
+</html>
