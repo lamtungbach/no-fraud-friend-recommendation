@@ -1,0 +1,39 @@
+{
+  "benchmark": "sprint2_part1_graph_index",
+  "config": {
+    "seed": 42,
+    "graph_semantics": "directed",
+    "dataset_identifier": "synthetic_uniform_directed",
+    "requested_nodes": 1000,
+    "requested_edge_draws": 5000,
+    "query_count": 100,
+    "retrieval": "exact_unbounded_two_hop"
+  },
+  "index": {
+    "node_count": 1000,
+    "edge_count": 4984,
+    "index_build_ms": 53.034,
+    "peak_tracemalloc_bytes": 2096128
+  },
+  "latency_ms": {
+    "min": 0.006,
+    "mean": 0.065,
+    "p50": 0.055,
+    "p95": 0.144,
+    "p99": 0.258,
+    "max": 0.287
+  },
+  "candidate_count": {
+    "min": 0.0,
+    "mean": 23.63,
+    "p50": 23.0,
+    "p95": 40.0,
+    "p99": 57.0,
+    "max": 59.0
+  },
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.14.0+cpu"
+  }
+}

@@ -1,0 +1,36 @@
+name: Sprint 2 quality gates
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test-and-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: mkdir -p artifacts/sprint2/security
+      - run: python -m ruff check src/graph src/serving src/retrieval tests/unit/graph tests/unit/serving tests/unit/retrieval scripts/check_coverage.py scripts/benchmark_graph_index.py
+      - run: >-
+          python -m pytest -q
+          --cov=src.graph --cov=src.serving --cov=src.retrieval
+          --cov-report=term-missing --cov-report=xml:artifacts/sprint2/coverage.xml
+          --cov-report=json:artifacts/sprint2/coverage.json --cov-fail-under=80
+      - run: python scripts/check_coverage.py
+      - run: python -m bandit -r src -f json -o artifacts/sprint2/security/bandit_report.json
+      - run: set -o pipefail; python -m pip_audit --cache-dir .tmp/pip-audit | tee artifacts/sprint2/security/dependency_audit.txt
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sprint2-reports
+          path: artifacts/sprint2/
