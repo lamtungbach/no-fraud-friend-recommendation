@@ -26,7 +26,8 @@ def sample_random_negatives(num_nodes: int, all_known_positive_pairs: Tensor | s
     available = num_nodes * (num_nodes - 1) if directed else num_nodes * (num_nodes - 1) // 2
     if num_negatives > available - len(positives):
         raise ValueError("Requested more random negatives than available non-positive pairs")
-    rng = random.Random(seed)
+    # This is seeded experiment sampling, not cryptographic randomness.
+    rng = random.Random(seed)  # nosec B311
     negatives: set[tuple[int, int]] = set()
     while len(negatives) < num_negatives:
         u, v = rng.randrange(num_nodes), rng.randrange(num_nodes)
@@ -49,7 +50,8 @@ def sample_hard_negatives(observed_graph: TaskGraph, positives: Tensor, all_know
     if fallback not in {"skip", "random"}:
         raise ValueError("fallback must be 'skip' or 'random'")
     known = _positive_set(all_known_positive_pairs, observed_graph.directed)
-    rng = random.Random(seed)
+    # This is seeded experiment sampling, not cryptographic randomness.
+    rng = random.Random(seed)  # nosec B311
     negatives: set[tuple[int, int]] = set()
     missing_sources = 0
     fallback_count = 0
