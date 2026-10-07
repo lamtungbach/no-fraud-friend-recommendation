@@ -28,7 +28,9 @@ def main() -> int:
     )
     parser.add_argument("--minimum", type=float, default=80)
     parser.add_argument(
-        "--packages", nargs="+", default=["src/graph", "src/serving", "src/retrieval"]
+        "--packages",
+        nargs="+",
+        default=["src/graph", "src/serving", "src/retrieval", "src/ranking"],
     )
     args = parser.parse_args()
     report = json.loads(args.report.read_text(encoding="utf-8"))

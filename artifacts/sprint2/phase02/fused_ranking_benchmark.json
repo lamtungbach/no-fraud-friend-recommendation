@@ -1,0 +1,951 @@
+{
+  "benchmark": "sprint2_phase02_fused_ranking",
+  "config": {
+    "seed": 42,
+    "dataset_identifier": "synthetic_uniform_directed",
+    "graph_semantics": "directed",
+    "nodes": 1000,
+    "unique_directed_edges": 4984,
+    "query_count": 100,
+    "retrieval": {
+      "first_hop_cap": 4,
+      "second_hop_cap": 8,
+      "candidate_cap": 16,
+      "strategy": "deterministic",
+      "seed": 42
+    },
+    "ranking": {
+      "ranking_method": "aa",
+      "top_m": 10
+    }
+  },
+  "latency_ms": {
+    "retrieval_ms": {
+      "p50": 0.01,
+      "p95": 0.012,
+      "p99": 0.019
+    },
+    "scoring_ms": {
+      "p50": 0.032,
+      "p95": 0.035,
+      "p99": 0.044
+    },
+    "topk_ms": {
+      "p50": 0.011,
+      "p95": 0.013,
+      "p99": 0.016
+    },
+    "total_ms": {
+      "p50": 0.053,
+      "p95": 0.058,
+      "p99": 0.07
+    }
+  },
+  "queries": [
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.04559988155961037,
+      "scoring_ms": 0.05100015550851822,
+      "topk_ms": 0.027399975806474686,
+      "total_ms": 0.12400001287460327
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 13,
+      "truncated": true,
+      "retrieval_ms": 0.015099998563528061,
+      "scoring_ms": 0.04100007936358452,
+      "topk_ms": 0.013699987903237343,
+      "total_ms": 0.06980006583034992
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 11,
+      "truncated": false,
+      "retrieval_ms": 0.011800089851021767,
+      "scoring_ms": 0.02759997732937336,
+      "topk_ms": 0.010999850928783417,
+      "total_ms": 0.05039991810917854
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 12,
+      "truncated": false,
+      "retrieval_ms": 0.010200077667832375,
+      "scoring_ms": 0.027999980375170708,
+      "topk_ms": 0.010200077667832375,
+      "total_ms": 0.04840013571083546
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01940014772117138,
+      "scoring_ms": 0.03600004129111767,
+      "topk_ms": 0.013899989426136017,
+      "total_ms": 0.06930017843842506
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01209997572004795,
+      "scoring_ms": 0.034300144761800766,
+      "topk_ms": 0.01109996810555458,
+      "total_ms": 0.0575000885874033
+    },
+    {
+      "query_degree": 9,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011700205504894257,
+      "scoring_ms": 0.03569992259144783,
+      "topk_ms": 0.012699980288743973,
+      "total_ms": 0.06010010838508606
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 11,
+      "truncated": false,
+      "retrieval_ms": 0.0068999361246824265,
+      "scoring_ms": 0.02469983883202076,
+      "topk_ms": 0.008899951353669167,
+      "total_ms": 0.04049972631037235
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010699965059757233,
+      "scoring_ms": 0.03260001540184021,
+      "topk_ms": 0.010999850928783417,
+      "total_ms": 0.05429983139038086
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010399846360087395,
+      "scoring_ms": 0.03469991497695446,
+      "topk_ms": 0.011399853974580765,
+      "total_ms": 0.05649961531162262
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 15,
+      "truncated": false,
+      "retrieval_ms": 0.008600065484642982,
+      "scoring_ms": 0.0320998951792717,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05139992572367191
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010800082236528397,
+      "scoring_ms": 0.033400021493434906,
+      "topk_ms": 0.012599863111972809,
+      "total_ms": 0.05679996684193611
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 13,
+      "truncated": false,
+      "retrieval_ms": 0.008200062438845634,
+      "scoring_ms": 0.027399975806474686,
+      "topk_ms": 0.009599840268492699,
+      "total_ms": 0.04519987851381302
+    },
+    {
+      "query_degree": 0,
+      "candidates_returned": 0,
+      "truncated": false,
+      "retrieval_ms": 0.0036999117583036423,
+      "scoring_ms": 0.00200001522898674,
+      "topk_ms": 0.001500127837061882,
+      "total_ms": 0.007200054824352264
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009599840268492699,
+      "scoring_ms": 0.032499898225069046,
+      "topk_ms": 0.010599847882986069,
+      "total_ms": 0.05269958637654781
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": false,
+      "retrieval_ms": 0.00909995287656784,
+      "scoring_ms": 0.03400002606213093,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.05370005965232849
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 7,
+      "truncated": false,
+      "retrieval_ms": 0.0068999361246824265,
+      "scoring_ms": 0.017399899661540985,
+      "topk_ms": 0.006800051778554916,
+      "total_ms": 0.031099887564778328
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009600073099136353,
+      "scoring_ms": 0.03320001997053623,
+      "topk_ms": 0.010800082236528397,
+      "total_ms": 0.05360017530620098
+    },
+    {
+      "query_degree": 1,
+      "candidates_returned": 2,
+      "truncated": false,
+      "retrieval_ms": 0.004699919372797012,
+      "scoring_ms": 0.006299931555986404,
+      "topk_ms": 0.0030999071896076202,
+      "total_ms": 0.014099758118391037
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 15,
+      "truncated": false,
+      "retrieval_ms": 0.009499955922365189,
+      "scoring_ms": 0.031200004741549492,
+      "topk_ms": 0.010899966582655907,
+      "total_ms": 0.05159992724657059
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01119985245168209,
+      "scoring_ms": 0.03220001235604286,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.054099829867482185
+    },
+    {
+      "query_degree": 0,
+      "candidates_returned": 0,
+      "truncated": false,
+      "retrieval_ms": 0.0032999087125062943,
+      "scoring_ms": 0.0018998980522155762,
+      "topk_ms": 0.001400010660290718,
+      "total_ms": 0.0065998174250125885
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 11,
+      "truncated": false,
+      "retrieval_ms": 0.00919983722269535,
+      "scoring_ms": 0.02319994382560253,
+      "topk_ms": 0.009200070053339005,
+      "total_ms": 0.04159985110163689
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 14,
+      "truncated": true,
+      "retrieval_ms": 0.008800067007541656,
+      "scoring_ms": 0.031100120395421982,
+      "topk_ms": 0.01009996049106121,
+      "total_ms": 0.05000014789402485
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 10,
+      "truncated": false,
+      "retrieval_ms": 0.006800051778554916,
+      "scoring_ms": 0.020800158381462097,
+      "topk_ms": 0.008400063961744308,
+      "total_ms": 0.03600027412176132
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011799857020378113,
+      "scoring_ms": 0.032899901270866394,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05539972335100174
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01190020702779293,
+      "scoring_ms": 0.03300001844763756,
+      "topk_ms": 0.01100008375942707,
+      "total_ms": 0.05590030923485756
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010899966582655907,
+      "scoring_ms": 0.03460003063082695,
+      "topk_ms": 0.010999850928783417,
+      "total_ms": 0.056499848142266273
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 8,
+      "truncated": false,
+      "retrieval_ms": 0.006299931555986404,
+      "scoring_ms": 0.017800135537981987,
+      "topk_ms": 0.0070999376475811005,
+      "total_ms": 0.031200004741549492
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009899958968162537,
+      "scoring_ms": 0.032700132578611374,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05330005660653114
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010800082236528397,
+      "scoring_ms": 0.032499898225069046,
+      "topk_ms": 0.010899966582655907,
+      "total_ms": 0.05419994704425335
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01109996810555458,
+      "scoring_ms": 0.031700124964118004,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05320017226040363
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011499971151351929,
+      "scoring_ms": 0.03160000778734684,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.05370005965232849
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010499963536858559,
+      "scoring_ms": 0.033300137147307396,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.05440018139779568
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": false,
+      "retrieval_ms": 0.008400063961744308,
+      "scoring_ms": 0.033400021493434906,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05220016464591026
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.008499948307871819,
+      "scoring_ms": 0.032700132578611374,
+      "topk_ms": 0.012200092896819115,
+      "total_ms": 0.05340017378330231
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01009996049106121,
+      "scoring_ms": 0.03269989974796772,
+      "topk_ms": 0.010499963536858559,
+      "total_ms": 0.05329982377588749
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 12,
+      "truncated": false,
+      "retrieval_ms": 0.007400056347250938,
+      "scoring_ms": 0.026399968191981316,
+      "topk_ms": 0.00909995287656784,
+      "total_ms": 0.042899977415800095
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011200085282325745,
+      "scoring_ms": 0.03260001540184021,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.054200179874897
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.012800097465515137,
+      "scoring_ms": 0.0320998951792717,
+      "topk_ms": 0.010399846360087395,
+      "total_ms": 0.05529983900487423
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011200085282325745,
+      "scoring_ms": 0.03200001083314419,
+      "topk_ms": 0.010799849405884743,
+      "total_ms": 0.053999945521354675
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 14,
+      "truncated": false,
+      "retrieval_ms": 0.008499948307871819,
+      "scoring_ms": 0.02950010821223259,
+      "topk_ms": 0.0100000761449337,
+      "total_ms": 0.04800013266503811
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01119985245168209,
+      "scoring_ms": 0.03229989670217037,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.054199714213609695
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010600080713629723,
+      "scoring_ms": 0.03290013410151005,
+      "topk_ms": 0.010499963536858559,
+      "total_ms": 0.05400017835199833
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009499955922365189,
+      "scoring_ms": 0.03260001540184021,
+      "topk_ms": 0.016300007700920105,
+      "total_ms": 0.058399979025125504
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": false,
+      "retrieval_ms": 0.009200070053339005,
+      "scoring_ms": 0.03220001235604286,
+      "topk_ms": 0.010800082236528397,
+      "total_ms": 0.05220016464591026
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011400086805224419,
+      "scoring_ms": 0.032400013878941536,
+      "topk_ms": 0.010500196367502213,
+      "total_ms": 0.05430029705166817
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01100008375942707,
+      "scoring_ms": 0.03300001844763756,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05470006726682186
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010499963536858559,
+      "scoring_ms": 0.031400006264448166,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05259993486106396
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.008800067007541656,
+      "scoring_ms": 0.031499890610575676,
+      "topk_ms": 0.010599847882986069,
+      "total_ms": 0.0508998055011034
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 15,
+      "truncated": false,
+      "retrieval_ms": 0.00809994526207447,
+      "scoring_ms": 0.0300002284348011,
+      "topk_ms": 0.01009996049106121,
+      "total_ms": 0.04820013418793678
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": false,
+      "retrieval_ms": 0.00809994526207447,
+      "scoring_ms": 0.03069988451898098,
+      "topk_ms": 0.010499963536858559,
+      "total_ms": 0.04929979331791401
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009799841791391373,
+      "scoring_ms": 0.031200004741549492,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05139992572367191
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01109996810555458,
+      "scoring_ms": 0.03309990279376507,
+      "topk_ms": 0.010499963536858559,
+      "total_ms": 0.05469983443617821
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": false,
+      "retrieval_ms": 0.00909995287656784,
+      "scoring_ms": 0.03060000017285347,
+      "topk_ms": 0.010799849405884743,
+      "total_ms": 0.05049980245530605
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 15,
+      "truncated": true,
+      "retrieval_ms": 0.009499955922365189,
+      "scoring_ms": 0.031099887564778328,
+      "topk_ms": 0.01009996049106121,
+      "total_ms": 0.05069980397820473
+    },
+    {
+      "query_degree": 1,
+      "candidates_returned": 2,
+      "truncated": false,
+      "retrieval_ms": 0.004200031980872154,
+      "scoring_ms": 0.005899928510189056,
+      "topk_ms": 0.0028999056667089462,
+      "total_ms": 0.012999866157770157
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 14,
+      "truncated": true,
+      "retrieval_ms": 0.009299954399466515,
+      "scoring_ms": 0.027600210160017014,
+      "topk_ms": 0.0100000761449337,
+      "total_ms": 0.04690024070441723
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 11,
+      "truncated": false,
+      "retrieval_ms": 0.007600057870149612,
+      "scoring_ms": 0.023200176656246185,
+      "topk_ms": 0.008699949830770493,
+      "total_ms": 0.03950018435716629
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010999850928783417,
+      "scoring_ms": 0.03169989213347435,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.05329982377588749
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010800082236528397,
+      "scoring_ms": 0.031000003218650818,
+      "topk_ms": 0.010399846360087395,
+      "total_ms": 0.05219993181526661
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010200077667832375,
+      "scoring_ms": 0.0320998951792717,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.052999937906861305
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010599847882986069,
+      "scoring_ms": 0.03210012800991535,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05310005508363247
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 13,
+      "truncated": false,
+      "retrieval_ms": 0.008200062438845634,
+      "scoring_ms": 0.029199989512562752,
+      "topk_ms": 0.009200070053339005,
+      "total_ms": 0.04660012200474739
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009299954399466515,
+      "scoring_ms": 0.032800016924738884,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05279993638396263
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010699965059757233,
+      "scoring_ms": 0.043800100684165955,
+      "topk_ms": 0.010800082236528397,
+      "total_ms": 0.06530014798045158
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 11,
+      "truncated": true,
+      "retrieval_ms": 0.00690016895532608,
+      "scoring_ms": 0.02319994382560253,
+      "topk_ms": 0.008700182661414146,
+      "total_ms": 0.03880029544234276
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 9,
+      "truncated": false,
+      "retrieval_ms": 0.007200054824352264,
+      "scoring_ms": 0.01910002902150154,
+      "topk_ms": 0.007899943739175797,
+      "total_ms": 0.0342000275850296
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011600088328123093,
+      "scoring_ms": 0.03190012648701668,
+      "topk_ms": 0.01109996810555458,
+      "total_ms": 0.05460018292069435
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010600080713629723,
+      "scoring_ms": 0.0325001310557127,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05350029096007347
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 15,
+      "truncated": true,
+      "retrieval_ms": 0.008800067007541656,
+      "scoring_ms": 0.029799994081258774,
+      "topk_ms": 0.010200077667832375,
+      "total_ms": 0.048800138756632805
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009600073099136353,
+      "scoring_ms": 0.030900118872523308,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05090027116239071
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 15,
+      "truncated": true,
+      "retrieval_ms": 0.009299954399466515,
+      "scoring_ms": 0.03220001235604286,
+      "topk_ms": 0.010599847882986069,
+      "total_ms": 0.052099814638495445
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 15,
+      "truncated": true,
+      "retrieval_ms": 0.00900006853044033,
+      "scoring_ms": 0.02859998494386673,
+      "topk_ms": 0.010499963536858559,
+      "total_ms": 0.04810001701116562
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01100008375942707,
+      "scoring_ms": 0.03210012800991535,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.053700292482972145
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.011100200936198235,
+      "scoring_ms": 0.03160000778734684,
+      "topk_ms": 0.010599847882986069,
+      "total_ms": 0.05330005660653114
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.00909995287656784,
+      "scoring_ms": 0.03060000017285347,
+      "topk_ms": 0.010700197890400887,
+      "total_ms": 0.0504001509398222
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009800074622035027,
+      "scoring_ms": 0.03229989670217037,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05279993638396263
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.008999835699796677,
+      "scoring_ms": 0.031400006264448166,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05079992115497589
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010999850928783417,
+      "scoring_ms": 0.0320998951792717,
+      "topk_ms": 0.010200077667832375,
+      "total_ms": 0.05329982377588749
+    },
+    {
+      "query_degree": 9,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010899966582655907,
+      "scoring_ms": 0.032899901270866394,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.05439994856715202
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 12,
+      "truncated": true,
+      "retrieval_ms": 0.008300179615616798,
+      "scoring_ms": 0.02519995905458927,
+      "topk_ms": 0.009300187230110168,
+      "total_ms": 0.04280032590031624
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010600080713629723,
+      "scoring_ms": 0.032499898225069046,
+      "topk_ms": 0.010299962013959885,
+      "total_ms": 0.05339994095265865
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01109996810555458,
+      "scoring_ms": 0.03310013562440872,
+      "topk_ms": 0.010600080713629723,
+      "total_ms": 0.054800184443593025
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 11,
+      "truncated": true,
+      "retrieval_ms": 0.00819982960820198,
+      "scoring_ms": 0.027399975806474686,
+      "topk_ms": 0.009100185707211494,
+      "total_ms": 0.04469999112188816
+    },
+    {
+      "query_degree": 1,
+      "candidates_returned": 8,
+      "truncated": false,
+      "retrieval_ms": 0.005200039595365524,
+      "scoring_ms": 0.016900012269616127,
+      "topk_ms": 0.006800051778554916,
+      "total_ms": 0.028900103643536568
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 14,
+      "truncated": true,
+      "retrieval_ms": 0.008799834176898003,
+      "scoring_ms": 0.027899863198399544,
+      "topk_ms": 0.009800074622035027,
+      "total_ms": 0.04649977199733257
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 14,
+      "truncated": false,
+      "retrieval_ms": 0.008699949830770493,
+      "scoring_ms": 0.028799986466765404,
+      "topk_ms": 0.009800074622035027,
+      "total_ms": 0.04730001091957092
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010400079190731049,
+      "scoring_ms": 0.031499890610575676,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05259993486106396
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009399838745594025,
+      "scoring_ms": 0.03320001997053623,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05329982377588749
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 13,
+      "truncated": false,
+      "retrieval_ms": 0.00800006091594696,
+      "scoring_ms": 0.02769986167550087,
+      "topk_ms": 0.009599840268492699,
+      "total_ms": 0.04529976285994053
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01209997572004795,
+      "scoring_ms": 0.03279978409409523,
+      "topk_ms": 0.010700197890400887,
+      "total_ms": 0.05559995770454407
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01019984483718872,
+      "scoring_ms": 0.03220001235604286,
+      "topk_ms": 0.010899966582655907,
+      "total_ms": 0.05329982377588749
+    },
+    {
+      "query_degree": 11,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010999850928783417,
+      "scoring_ms": 0.03409991040825844,
+      "topk_ms": 0.010699965059757233,
+      "total_ms": 0.05579972639679909
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.01090019941329956,
+      "scoring_ms": 0.03190012648701668,
+      "topk_ms": 0.010799849405884743,
+      "total_ms": 0.05360017530620098
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009799841791391373,
+      "scoring_ms": 0.032800016924738884,
+      "topk_ms": 0.010899966582655907,
+      "total_ms": 0.05349982529878616
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 14,
+      "truncated": false,
+      "retrieval_ms": 0.0070999376475811005,
+      "scoring_ms": 0.028499867767095566,
+      "topk_ms": 0.009599840268492699,
+      "total_ms": 0.045199645683169365
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010600080713629723,
+      "scoring_ms": 0.032800016924738884,
+      "topk_ms": 0.010700197890400887,
+      "total_ms": 0.05410029552876949
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.009800074622035027,
+      "scoring_ms": 0.031800009310245514,
+      "topk_ms": 0.010299962013959885,
+      "total_ms": 0.051900045946240425
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "retrieval_ms": 0.010600080713629723,
+      "scoring_ms": 0.03220001235604286,
+      "topk_ms": 0.010400079190731049,
+      "total_ms": 0.05320017226040363
+    }
+  ],
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.14.0+cpu"
+  }
+}

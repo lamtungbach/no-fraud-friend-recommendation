@@ -4,6 +4,7 @@ source =
     src/graph
     src/serving
     src/retrieval
+    src/ranking
 
 [report]
 show_missing = True
