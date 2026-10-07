@@ -1,0 +1,628 @@
+{
+  "benchmark": "sprint2_phase01_bounded_retrieval",
+  "config": {
+    "seed": 42,
+    "dataset_identifier": "synthetic_uniform_directed",
+    "graph_semantics": "directed",
+    "nodes": 1000,
+    "unique_directed_edges": 4984,
+    "query_count": 100,
+    "first_hop_cap": 4,
+    "second_hop_cap": 8,
+    "candidate_cap": 16,
+    "strategy": "deterministic",
+    "retrieval_seed": 42
+  },
+  "latency_ms": {
+    "p50": 0.009,
+    "p95": 0.011,
+    "p99": 0.014
+  },
+  "queries": [
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.034800032153725624
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 13,
+      "truncated": true,
+      "latency_ms": 0.014199875295162201
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 11,
+      "truncated": false,
+      "latency_ms": 0.012499978765845299
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 12,
+      "truncated": false,
+      "latency_ms": 0.009800074622035027
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.011899974197149277
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.01119985245168209
+    },
+    {
+      "query_degree": 9,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.010899966582655907
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 11,
+      "truncated": false,
+      "latency_ms": 0.006400048732757568
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.01119985245168209
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009200070053339005
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 15,
+      "truncated": false,
+      "latency_ms": 0.007899943739175797
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009400071576237679
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 13,
+      "truncated": false,
+      "latency_ms": 0.007600057870149612
+    },
+    {
+      "query_degree": 0,
+      "candidates_returned": 0,
+      "truncated": false,
+      "latency_ms": 0.003400025889277458
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008699949830770493
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": false,
+      "latency_ms": 0.008699949830770493
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 7,
+      "truncated": false,
+      "latency_ms": 0.00590016134083271
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008299946784973145
+    },
+    {
+      "query_degree": 1,
+      "candidates_returned": 2,
+      "truncated": false,
+      "latency_ms": 0.00400003045797348
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 15,
+      "truncated": false,
+      "latency_ms": 0.008500181138515472
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009899958968162537
+    },
+    {
+      "query_degree": 0,
+      "candidates_returned": 0,
+      "truncated": false,
+      "latency_ms": 0.0029001384973526
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 11,
+      "truncated": false,
+      "latency_ms": 0.007899943739175797
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 14,
+      "truncated": true,
+      "latency_ms": 0.0078000593930482864
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 10,
+      "truncated": false,
+      "latency_ms": 0.005899928510189056
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.010299962013959885
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.01009996049106121
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009699957445263863
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 8,
+      "truncated": false,
+      "latency_ms": 0.005400041118264198
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008899951353669167
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009499955922365189
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.010299962013959885
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.01009996049106121
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009600073099136353
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": false,
+      "latency_ms": 0.0074999406933784485
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.007200054824352264
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008499948307871819
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 12,
+      "truncated": false,
+      "latency_ms": 0.006200047209858894
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009799841791391373
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008999835699796677
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009600073099136353
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 14,
+      "truncated": false,
+      "latency_ms": 0.0070999376475811005
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.010899966582655907
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.010500196367502213
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008499948307871819
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": false,
+      "latency_ms": 0.0078000593930482864
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009800074622035027
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009400071576237679
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009200070053339005
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.0073998235166072845
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 15,
+      "truncated": false,
+      "latency_ms": 0.0066999346017837524
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": false,
+      "latency_ms": 0.0069998204708099365
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008200062438845634
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009599840268492699
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": false,
+      "latency_ms": 0.0078000593930482864
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 15,
+      "truncated": true,
+      "latency_ms": 0.008699949830770493
+    },
+    {
+      "query_degree": 1,
+      "candidates_returned": 2,
+      "truncated": false,
+      "latency_ms": 0.0036999117583036423
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 14,
+      "truncated": true,
+      "latency_ms": 0.008600065484642982
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 11,
+      "truncated": false,
+      "latency_ms": 0.0066999346017837524
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009899958968162537
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009699957445263863
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009200070053339005
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009299954399466515
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 13,
+      "truncated": false,
+      "latency_ms": 0.0072999391704797745
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008299946784973145
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009299954399466515
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 11,
+      "truncated": true,
+      "latency_ms": 0.005699926987290382
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 9,
+      "truncated": false,
+      "latency_ms": 0.00609993003308773
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009999843314290047
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008899951353669167
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 15,
+      "truncated": true,
+      "latency_ms": 0.007600057870149612
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008299946784973145
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 15,
+      "truncated": true,
+      "latency_ms": 0.0078000593930482864
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 15,
+      "truncated": true,
+      "latency_ms": 0.007799826562404633
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009599840268492699
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009699957445263863
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.0076999422162771225
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.00990019179880619
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.007899943739175797
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009499955922365189
+    },
+    {
+      "query_degree": 9,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009500188753008842
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 12,
+      "truncated": true,
+      "latency_ms": 0.007200054824352264
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009400071576237679
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009399838745594025
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 11,
+      "truncated": true,
+      "latency_ms": 0.0070999376475811005
+    },
+    {
+      "query_degree": 1,
+      "candidates_returned": 8,
+      "truncated": false,
+      "latency_ms": 0.004299916326999664
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 14,
+      "truncated": true,
+      "latency_ms": 0.007300172001123428
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 14,
+      "truncated": false,
+      "latency_ms": 0.007400056347250938
+    },
+    {
+      "query_degree": 6,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008700182661414146
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.007899943739175797
+    },
+    {
+      "query_degree": 3,
+      "candidates_returned": 13,
+      "truncated": false,
+      "latency_ms": 0.006500165909528732
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009899958968162537
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008499948307871819
+    },
+    {
+      "query_degree": 11,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.009300187230110168
+    },
+    {
+      "query_degree": 5,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.00909995287656784
+    },
+    {
+      "query_degree": 8,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008499948307871819
+    },
+    {
+      "query_degree": 2,
+      "candidates_returned": 14,
+      "truncated": false,
+      "latency_ms": 0.0059998128563165665
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008800067007541656
+    },
+    {
+      "query_degree": 4,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.008200062438845634
+    },
+    {
+      "query_degree": 7,
+      "candidates_returned": 16,
+      "truncated": true,
+      "latency_ms": 0.00900006853044033
+    }
+  ],
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.14.0+cpu"
+  }
+}
