@@ -1,0 +1,23 @@
+PHASE 00 — Stabilize Sprint 2 Part 1
+Generated: 2026-10-08 (ICT)
+
+Regression and coverage:
+  Command: .venv\Scripts\python.exe -m pytest -q --cov=src.graph --cov=src.serving --cov=src.retrieval --cov-report=term-missing --cov-report=xml:artifacts/sprint2/coverage.xml --cov-report=json:artifacts/sprint2/coverage.json --cov-fail-under=80
+  Result: 31 passed
+  Total coverage: 92.86%
+  Package coverage: src/graph 88.57%, src/serving 96.97%, src/retrieval 100.00%
+
+Part 1 unit tests:
+  Command: .venv\Scripts\python.exe -m pytest tests/unit/graph tests/unit/serving tests/unit/retrieval -q
+  Result: 10 passed
+
+Quality gates:
+  Ruff: PASS
+  Bandit: PASS (artifacts/sprint2/security/bandit_report.json)
+  pip-audit: PASS (no known vulnerabilities found)
+  Gitleaks: NOT RUN — binary absent; approved container-based scanner was rejected by the environment because it would mount the repository into an external image.
+
+Benchmark:
+  Command: .venv\Scripts\python.exe scripts/benchmark_graph_index.py
+  Result: PASS
+  Artifact: artifacts/sprint2/part1/graph_index_benchmark.json

@@ -39,7 +39,8 @@ class ClassicalEvaluator:
         if negative_mode not in {"random", "hard"}:
             raise ValueError("negative_mode must be random or hard")
         start = perf_counter()
-        rng = random.Random(self.seed)
+        # This is deterministic offline evaluation, not a security token.
+        rng = random.Random(self.seed)  # nosec B311
         coverage_flags: list[bool] = []
         candidate_sizes: list[int] = []
         rankings: list[list[bool]] = []
