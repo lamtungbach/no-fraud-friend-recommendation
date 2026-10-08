@@ -11,6 +11,8 @@ from src.trust.schemas import (
     BatchTrustRequest,
     SafeFilterRequest,
     SafeFilterResponse,
+    SafeReRankRequest,
+    SafeReRankResponse,
     SingleUserRequest,
     TrustProfileResponse,
 )
@@ -102,3 +104,26 @@ def filter_safe_recommendations(
     - Loại bỏ: Tier 3 (Hạn chế người lạ) & Tier 4 (Cách ly gian lận).
     """
     return service.filter_safe_candidates(req.target_user_id, req.candidate_user_ids)
+
+
+@router.post(
+    "/recommendations/safe-rerank",
+    response_model=SafeReRankResponse,
+    summary="6. Tái Xếp Hạng An Toàn & Phân Tầng Mềm (Safe Re-Ranking Engine)",
+)
+def rerank_safe_recommendations(
+    req: SafeReRankRequest,
+    service: TrustService = Depends(get_trust_service),
+):
+    """
+    Nhận danh sách ứng viên kèm điểm liên quan PYMK và số bạn chung uy tín cao:
+    - Tính điểm kết hợp Final_Score(u, v) = PYMK_Relevance * (S_trust / 100) * S_safe_pair.
+    - Áp dụng chính sách cứu xét Tier 3 nếu có >= 5 bạn chung đạt Tier 1.
+    - Loại bỏ tuyệt đối 100% đối với Tier 4 (cách ly gian lận/botnet).
+    - Trả về danh sách được tái xếp hạng tất định (Final_Score DESC, ID ASC).
+    """
+    return service.rerank_candidates(
+        target_user_id=req.target_user_id,
+        candidates=req.candidates,
+        tier3_threshold=req.tier3_threshold,
+    )

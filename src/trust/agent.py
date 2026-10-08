@@ -4,7 +4,7 @@ Agent Thẩm định Tín nhiệm & Phát hiện Gian lận (Trust & Fraud Detec
 """
 
 from typing import Any, Dict, List
-from src.trust.schemas import RecommendationTier, TrustProfileResponse
+from src.trust.schemas import TrustProfileResponse
 from src.trust.service import TrustService
 
 
