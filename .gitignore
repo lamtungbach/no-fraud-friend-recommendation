@@ -8,6 +8,7 @@ __pycache__/
 .uv-cache/
 .uv-cache-check/
 .pytest_cache/
+.coverage
 
 # Local configuration and credentials
 .env
