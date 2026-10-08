@@ -1,16 +1,26 @@
-import os
 from pathlib import Path
 import pytest
 
 pytest.importorskip("pydantic")
 
-import torch
+import torch  # noqa: E402
 
-from src.trust.schemas import RecommendationTier
-from src.trust.scoring import calculate_trust_score, classify_trust_tier, get_decision_meta
-from src.trust.models import FraudDetectionRGCN
-from src.trust.service import TrustService
-from src.trust.agent import TrustAgent
+from src.trust.schemas import (  # noqa: E402
+    CandidateReRankInput,
+    PillarScores,
+    RecommendationTier,
+    TrustProfileResponse,
+)
+from src.trust.scoring import (  # noqa: E402
+    calculate_final_ranking_score,
+    calculate_trust_score,
+    classify_trust_tier,
+    evaluate_candidate_admission,
+    get_decision_meta,
+)
+from src.trust.models import FraudDetectionRGCN  # noqa: E402
+from src.trust.service import TrustService  # noqa: E402
+from src.trust.agent import TrustAgent  # noqa: E402
 
 
 def test_trust_scoring_formula():
@@ -150,3 +160,157 @@ def test_service_file_not_found():
     service = TrustService("/non/existent/path/profiles.csv")
     with pytest.raises(FileNotFoundError):
         service.load_profiles()
+
+
+def test_final_ranking_score_formula():
+    # Final = pymk * (trust / 100) * dyadic
+    # 0.80 * 0.80 * 1.0 = 0.64
+    score1 = calculate_final_ranking_score(0.8, 80.0, 1.0)
+    assert abs(score1 - 0.64) < 1e-6
+
+    # Zero trust -> 0.0
+    score_zero = calculate_final_ranking_score(0.95, 0.0, 1.0)
+    assert score_zero == 0.0
+
+    # Clamping
+    score_clamped = calculate_final_ranking_score(-0.5, 150.0, 1.5)
+    assert score_clamped == 0.0
+
+
+def test_evaluate_candidate_admission_policy():
+    # Tier 1 -> Always Allowed
+    ok1, _ = evaluate_candidate_admission(RecommendationTier.TIER_1_VERIFIED)
+    assert ok1 is True
+
+    # Tier 2 -> Always Allowed
+    ok2, _ = evaluate_candidate_admission(RecommendationTier.TIER_2_STANDARD)
+    assert ok2 is True
+
+    # Tier 3 with insufficient mutual Tier 1 -> Blocked
+    ok3_block, msg3_block = evaluate_candidate_admission(
+        RecommendationTier.TIER_3_RESTRICTED, mutual_tier1_count=2, tier3_threshold=5
+    )
+    assert ok3_block is False
+    assert "[AN]" in msg3_block
+
+    # Tier 3 with sufficient mutual Tier 1 (>= 5) -> Allowed
+    ok3_pass, msg3_pass = evaluate_candidate_admission(
+        RecommendationTier.TIER_3_RESTRICTED, mutual_tier1_count=5, tier3_threshold=5
+    )
+    assert ok3_pass is True
+    assert "[CUU XET]" in msg3_pass
+
+    # Tier 4 -> Always Blocked
+    ok4, msg4 = evaluate_candidate_admission(RecommendationTier.TIER_4_FRAUD, mutual_tier1_count=20)
+    assert ok4 is False
+    assert "[CACH LY]" in msg4
+
+
+def test_rerank_candidates_logic_and_sorting():
+    service = TrustService("/mock/non_existent.csv")
+    service.cache = {
+        10: TrustProfileResponse(
+            user_id=10,
+            ground_truth_label="Human (Nguoi that)",
+            p_bot=0.02,
+            trust_score=90.0,
+            recommendation_tier=RecommendationTier.TIER_1_VERIFIED,
+            decision="[OK]",
+            is_recommendable=True,
+            pillars=PillarScores(identity_auth=0.9, interaction_health=0.9, network_hygiene=0.9, content_safety=0.9),
+        ),
+        20: TrustProfileResponse(
+            user_id=20,
+            ground_truth_label="Human (Nguoi that)",
+            p_bot=0.15,
+            trust_score=70.0,
+            recommendation_tier=RecommendationTier.TIER_2_STANDARD,
+            decision="[OK]",
+            is_recommendable=True,
+            pillars=PillarScores(identity_auth=0.7, interaction_health=0.7, network_hygiene=0.7, content_safety=0.7),
+        ),
+        30: TrustProfileResponse(
+            user_id=30,
+            ground_truth_label="Human (Nguoi that)",
+            p_bot=0.25,
+            trust_score=50.0,
+            recommendation_tier=RecommendationTier.TIER_3_RESTRICTED,
+            decision="[CANH GIAC]",
+            is_recommendable=False,
+            pillars=PillarScores(identity_auth=0.5, interaction_health=0.5, network_hygiene=0.5, content_safety=0.5),
+        ),
+        40: TrustProfileResponse(
+            user_id=40,
+            ground_truth_label="Bot (Tai khoan ao)",
+            p_bot=0.95,
+            trust_score=15.0,
+            recommendation_tier=RecommendationTier.TIER_4_FRAUD,
+            decision="[CACH LY]",
+            is_recommendable=False,
+            pillars=PillarScores(identity_auth=0.1, interaction_health=0.1, network_hygiene=0.1, content_safety=0.1),
+        ),
+    }
+    service.is_loaded = True
+
+    inputs = [
+        # Candidate 10: pymk=0.50, trust=90.0 -> final = 0.45 (Tier 1)
+        CandidateReRankInput(candidate_id=10, pymk_score=0.50, mutual_tier1_count=0),
+        # Candidate 20: pymk=0.50, trust=70.0 -> final = 0.35 (Tier 2)
+        CandidateReRankInput(candidate_id=20, pymk_score=0.50, mutual_tier1_count=0),
+        # Candidate 30: pymk=0.80, trust=50.0 -> final = 0.40, mutual=5 (Tier 3 rescued!)
+        CandidateReRankInput(candidate_id=30, pymk_score=0.80, mutual_tier1_count=5),
+        # Candidate 40: pymk=0.99, trust=15.0 -> final = 0.1485 (Tier 4 blocked 100%)
+        CandidateReRankInput(candidate_id=40, pymk_score=0.99, mutual_tier1_count=10),
+    ]
+
+    res = service.rerank_candidates(target_user_id=100, candidates=inputs, tier3_threshold=5)
+    assert res.total_candidates == 4
+    assert res.passed_count == 3
+    assert res.blocked_count == 1
+
+    # Check rank order: 10 (final 0.45) > 30 (final 0.40) > 20 (final 0.35)
+    assert res.ranked_candidates[0].candidate_id == 10
+    assert res.ranked_candidates[1].candidate_id == 30
+    assert res.ranked_candidates[2].candidate_id == 20
+
+    # Candidate 40 must be in blocked list
+    assert res.blocked_candidates[0].candidate_id == 40
+    assert res.blocked_candidates[0].is_allowed is False
+
+
+def test_rerank_deterministic_tie_breaker():
+    service = TrustService("/mock/non_existent.csv")
+    service.cache = {
+        5: TrustProfileResponse(
+            user_id=5,
+            ground_truth_label="Human",
+            p_bot=0.05,
+            trust_score=80.0,
+            recommendation_tier=RecommendationTier.TIER_1_VERIFIED,
+            decision="[OK]",
+            is_recommendable=True,
+            pillars=PillarScores(identity_auth=0.8, interaction_health=0.8, network_hygiene=0.8, content_safety=0.8),
+        ),
+        15: TrustProfileResponse(
+            user_id=15,
+            ground_truth_label="Human",
+            p_bot=0.05,
+            trust_score=80.0,
+            recommendation_tier=RecommendationTier.TIER_1_VERIFIED,
+            decision="[OK]",
+            is_recommendable=True,
+            pillars=PillarScores(identity_auth=0.8, interaction_health=0.8, network_hygiene=0.8, content_safety=0.8),
+        ),
+    }
+    service.is_loaded = True
+
+    # Both have pymk=0.5 and trust=80.0 -> identical final_ranking_score = 0.40
+    inputs = [
+        CandidateReRankInput(candidate_id=15, pymk_score=0.5, mutual_tier1_count=0),
+        CandidateReRankInput(candidate_id=5, pymk_score=0.5, mutual_tier1_count=0),
+    ]
+
+    res = service.rerank_candidates(target_user_id=1, candidates=inputs)
+    # Tie break: candidate 5 must come before candidate 15
+    assert res.ranked_candidates[0].candidate_id == 5
+    assert res.ranked_candidates[1].candidate_id == 15

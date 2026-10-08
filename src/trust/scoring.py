@@ -65,3 +65,49 @@ def get_decision_meta(tier: RecommendationTier) -> Tuple[str, bool]:
         return "[CANH GIAC] - Hạn chế, ẩn khỏi người lạ, cần thêm bạn chung.", False
     else:
         return "[CACH LY] - Nghi vấn gian lận/botnet, chặn hoàn toàn khỏi luồng gợi ý.", False
+
+
+def calculate_final_ranking_score(
+    pymk_relevance: float,
+    trust_score: float,
+    dyadic_safety: float = 1.0,
+) -> float:
+    """
+    Tính điểm tái xếp hạng hợp nhất Final_Score:
+    Final_Score(u, v) = PYMK_Relevance(u, v) * (S_trust(v) / 100.0) * S_safe_pair(u, v)
+    """
+    safe_pymk = max(0.0, float(pymk_relevance))
+    safe_trust = max(0.0, min(100.0, float(trust_score))) / 100.0
+    safe_dyadic = max(0.0, min(1.0, float(dyadic_safety)))
+    return float(safe_pymk * safe_trust * safe_dyadic)
+
+
+def evaluate_candidate_admission(
+    tier: RecommendationTier,
+    mutual_tier1_count: int = 0,
+    tier3_threshold: int = 5,
+) -> Tuple[bool, str]:
+    """
+    Đánh giá điều kiện cho phép hiển thị ứng viên theo chính sách can thiệp phân tầng:
+    - Tier 1 (Verified Safe): Cho phép hiển thị, ưu tiên top đầu.
+    - Tier 2 (Standard Trust): Cho phép hiển thị tiêu chuẩn.
+    - Tier 3 (Restricted Caution): Chỉ cho phép hiển thị nếu có >= tier3_threshold bạn chung Tier 1 bảo lãnh.
+    - Tier 4 (Quarantine Fraud): Cách ly tuyệt đối 100%.
+    """
+    if tier == RecommendationTier.TIER_1_VERIFIED:
+        return True, "[CHO PHEP] - Ưu tiên đề xuất (Tier 1 Verified Safe)"
+    elif tier == RecommendationTier.TIER_2_STANDARD:
+        return True, "[CHO PHEP] - Đủ điều kiện đề xuất tiêu chuẩn (Tier 2 Standard Trust)"
+    elif tier == RecommendationTier.TIER_3_RESTRICTED:
+        if mutual_tier1_count >= tier3_threshold:
+            return (
+                True,
+                f"[CUU XET] - Cho phép đề xuất: có {mutual_tier1_count} bạn chung Tier 1 bảo lãnh (ngưỡng >= {tier3_threshold})",
+            )
+        else:
+            return (
+                False,
+                f"[AN] - Ẩn khỏi danh sách gợi ý: chỉ có {mutual_tier1_count} bạn chung Tier 1 (yêu cầu tối thiểu >= {tier3_threshold})",
+            )
+    else:
+        return False, "[CACH LY] - Loại bỏ 100%: tài khoản bị gắn cờ gian lận / botnet (Tier 4 Fraud)"

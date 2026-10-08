@@ -10,12 +10,19 @@ import pandas as pd
 
 from src.trust.schemas import (
     CandidateFilterItem,
+    CandidateReRankInput,
+    CandidateReRankItem,
     PillarScores,
     RecommendationTier,
     SafeFilterResponse,
+    SafeReRankResponse,
     TrustProfileResponse,
 )
-from src.trust.scoring import classify_trust_tier, get_decision_meta
+from src.trust.scoring import (
+    calculate_final_ranking_score,
+    evaluate_candidate_admission,
+    get_decision_meta,
+)
 
 
 class TrustService:
@@ -120,4 +127,75 @@ class TrustService:
             safe_recommendations_count=len(safe_list),
             safe_candidates=safe_list,
             filtered_out_candidates=blocked_list,
+        )
+
+    def rerank_candidates(
+        self,
+        target_user_id: int,
+        candidates: List[CandidateReRankInput],
+        tier3_threshold: int = 5,
+    ) -> SafeReRankResponse:
+        """
+        Tái xếp hạng an toàn danh sách ứng viên từ PYMK Engine:
+        1. Tra cứu điểm tín nhiệm và phân tầng từ cache O(1).
+        2. Tính Final_Score = pymk_score * (trust_score / 100) * dyadic_safety.
+        3. Áp dụng chính sách can thiệp phân tầng (Tier 1-4, cứu xét Tier 3 nếu mutual_tier1_count >= tier3_threshold).
+        4. Sắp xếp tất định: final_ranking_score DESC, candidate_id ASC.
+        """
+        passed_list: List[CandidateReRankItem] = []
+        blocked_list: List[CandidateReRankItem] = []
+
+        for cand_in in candidates:
+            c_id = cand_in.candidate_id
+            profile = self.cache.get(c_id)
+
+            if profile is None:
+                tier = RecommendationTier.TIER_4_FRAUD
+                trust_score = 0.0
+                dyadic_score = 1.0
+                final_score = 0.0
+                is_allowed = False
+                reason = "[KHONG XAC THUC] - Không tìm thấy hồ sơ tín nhiệm của người dùng trong hệ thống."
+            else:
+                tier = profile.recommendation_tier
+                trust_score = profile.trust_score
+                dyadic_score = 1.0
+                final_score = calculate_final_ranking_score(
+                    cand_in.pymk_score,
+                    trust_score,
+                    dyadic_score,
+                )
+                is_allowed, reason = evaluate_candidate_admission(
+                    tier,
+                    cand_in.mutual_tier1_count,
+                    tier3_threshold=tier3_threshold,
+                )
+
+            item = CandidateReRankItem(
+                candidate_id=c_id,
+                trust_score=round(trust_score, 2),
+                recommendation_tier=tier,
+                pymk_score=round(cand_in.pymk_score, 4),
+                dyadic_safety_score=round(dyadic_score, 4),
+                final_ranking_score=round(final_score, 4),
+                is_allowed=is_allowed,
+                reason=reason,
+            )
+
+            if is_allowed:
+                passed_list.append(item)
+            else:
+                blocked_list.append(item)
+
+        # Sắp xếp tất định: Điểm cao nhất lên đầu (DESC), nếu bằng điểm thì ID nhỏ trước (ASC)
+        passed_list.sort(key=lambda x: (-x.final_ranking_score, x.candidate_id))
+        blocked_list.sort(key=lambda x: (-x.final_ranking_score, x.candidate_id))
+
+        return SafeReRankResponse(
+            target_user_id=target_user_id,
+            total_candidates=len(candidates),
+            passed_count=len(passed_list),
+            blocked_count=len(blocked_list),
+            ranked_candidates=passed_list,
+            blocked_candidates=blocked_list,
         )
