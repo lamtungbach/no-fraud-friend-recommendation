@@ -1,0 +1,5 @@
+actual_edge_count,candidate_cap,candidates_per_query,generator,graph_semantics,index_build_ms,index_memory_bytes_estimate,mean_latency_ms,node_count,p50_latency_ms,p95_latency_ms,p99_latency_ms,query_count,reason,requested_edge_count,rss_bytes,seed,status,truncated_rate
+40000,10000,65.3,endpoint_probability=random()**2.4 (heavy-tail hubs),directed,202.12249993346632,1335120,0.02889999421313405,10000,0.016200123354792595,0.0887999776750803,0.18420000560581684,100,,40000,497340416,42,completed,0.0
+400000,10000,141.6,endpoint_probability=random()**2.4 (heavy-tail hubs),directed,1897.3401999101043,15643088,0.0431330013088882,100000,0.016700010746717453,0.0892002135515213,0.44640013948082924,100,,400000,618233856,42,completed,0.0
+,,,,,,,,500000,,,,,estimated Python adjacency peak exceeds conservative available-memory guard,2000000,,,skipped_resource_guard,
+,,,,,,,,1000000,,,,,estimated Python adjacency peak exceeds conservative available-memory guard,4000000,,,skipped_resource_guard,
