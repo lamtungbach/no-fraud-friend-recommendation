@@ -1,0 +1,38 @@
+{
+  "config": {
+    "seed": 42,
+    "max_held_out": 1000,
+    "top_m": 10,
+    "ranking_method": "aa",
+    "scale_queries": 100,
+    "scale_edges_per_node": 4
+  },
+  "dataset": {
+    "dataset_name": "MGTAB",
+    "schema_version": "1.0",
+    "num_nodes": 10199,
+    "num_edges": 1700108,
+    "num_features": 788,
+    "source_path": "MGTAB"
+  },
+  "evaluation": [
+    {
+      "semantics": "directed",
+      "all_test_positives": 61887,
+      "evaluated_held_out_positives": 1000,
+      "observed_edge_count": 252759
+    },
+    {
+      "semantics": "mutual",
+      "all_test_positives": 12832,
+      "evaluated_held_out_positives": 1000,
+      "observed_edge_count": 361249
+    }
+  ],
+  "environment": {
+    "python": "3.13.5",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.14.0+cpu",
+    "available_memory_bytes_before_scale": 2908512256
+  }
+}
