@@ -67,6 +67,41 @@ def get_decision_meta(tier: RecommendationTier) -> Tuple[str, bool]:
         return "[CACH LY] - Nghi vấn gian lận/botnet, chặn hoàn toàn khỏi luồng gợi ý.", False
 
 
+def calculate_dyadic_safety_score(
+    mutual_total_count: int = 0,
+    mutual_tier1_count: int = 0,
+    asymmetry_penalty: float = 0.0,
+    alpha: float = 0.20,
+) -> float:
+    """
+    Tính điểm an toàn tương tác cặp đôi S_safe_pair(u, v) in [0.0, 1.0].
+
+    Phòng thủ 2 lớp:
+    1. Khử độc bẫy bạn chung (Anti-Triadic Infiltration):
+       - Đánh giá tỷ lệ bạn chung đạt chuẩn Tier 1 Verified Safe bảo chứng.
+       - Purity_ratio = min(mutual_tier1, mutual_total) / mutual_total.
+       - Purity_score = alpha + (1.0 - alpha) * Purity_ratio.
+       - Nếu mutual_total == 0 (gợi ý không qua topo bạn chung): Purity_score = 1.0.
+    2. Phạt spam tương tác một chiều bất đối xứng (Directional Spam / Asymmetry):
+       - Asymmetry_score = 1.0 - asymmetry_penalty.
+
+    S_safe_pair(u, v) = Purity_score * Asymmetry_score in [0.0, 1.0].
+    """
+    safe_alpha = max(0.0, min(1.0, float(alpha)))
+    safe_asym = max(0.0, min(1.0, float(asymmetry_penalty)))
+
+    if mutual_total_count <= 0:
+        purity_score = 1.0
+    else:
+        valid_tier1 = min(max(0, int(mutual_tier1_count)), int(mutual_total_count))
+        purity_ratio = float(valid_tier1) / float(mutual_total_count)
+        purity_score = safe_alpha + (1.0 - safe_alpha) * purity_ratio
+
+    asym_score = 1.0 - safe_asym
+    raw_score = purity_score * asym_score
+    return max(0.0, min(1.0, float(raw_score)))
+
+
 def calculate_final_ranking_score(
     pymk_relevance: float,
     trust_score: float,

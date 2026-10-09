@@ -19,6 +19,7 @@ from src.trust.schemas import (
     TrustProfileResponse,
 )
 from src.trust.scoring import (
+    calculate_dyadic_safety_score,
     calculate_final_ranking_score,
     evaluate_candidate_admission,
     get_decision_meta,
@@ -152,24 +153,37 @@ class TrustService:
             if profile is None:
                 tier = RecommendationTier.TIER_4_FRAUD
                 trust_score = 0.0
-                dyadic_score = 1.0
+                dyadic_score = 0.0
                 final_score = 0.0
                 is_allowed = False
                 reason = "[KHONG XAC THUC] - Không tìm thấy hồ sơ tín nhiệm của người dùng trong hệ thống."
             else:
                 tier = profile.recommendation_tier
                 trust_score = profile.trust_score
-                dyadic_score = 1.0
+                dyadic_score = calculate_dyadic_safety_score(
+                    mutual_total_count=cand_in.mutual_total_count,
+                    mutual_tier1_count=cand_in.mutual_tier1_count,
+                    asymmetry_penalty=cand_in.asymmetry_penalty,
+                )
                 final_score = calculate_final_ranking_score(
                     cand_in.pymk_score,
                     trust_score,
                     dyadic_score,
                 )
-                is_allowed, reason = evaluate_candidate_admission(
+                is_allowed, base_reason = evaluate_candidate_admission(
                     tier,
                     cand_in.mutual_tier1_count,
                     tier3_threshold=tier3_threshold,
                 )
+                if dyadic_score < 1.0 and is_allowed:
+                    if cand_in.asymmetry_penalty > 0.0:
+                        reason = f"{base_reason} | [CANH BAO SPAM] - Phạt spam một chiều (dyadic={dyadic_score:.2f})"
+                    elif cand_in.mutual_total_count > 0 and cand_in.mutual_tier1_count < cand_in.mutual_total_count:
+                        reason = f"{base_reason} | [CANH BAO BAY BAN CHUNG] - Chiết khấu bẫy bạn chung: {cand_in.mutual_tier1_count}/{cand_in.mutual_total_count} bạn Tier 1 (dyadic={dyadic_score:.2f})"
+                    else:
+                        reason = f"{base_reason} | [CANH BAO CAP DOI] - Chiết khấu an toàn cặp đôi (dyadic={dyadic_score:.2f})"
+                else:
+                    reason = base_reason
 
             item = CandidateReRankItem(
                 candidate_id=c_id,
