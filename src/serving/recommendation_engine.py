@@ -8,6 +8,7 @@ import math
 import time
 from collections.abc import Hashable
 from dataclasses import asdict, dataclass, replace
+from typing import TYPE_CHECKING
 
 from src.ranking import RankedCandidate, RankingConfig, rank_topology_candidates
 from src.retrieval import (
@@ -24,6 +25,13 @@ from src.serving.recommendation_cache import (
 )
 
 _CACHE_SCHEMA_VERSION = 1
+
+if TYPE_CHECKING:
+    from src.serving.trust_boundary import (
+        SafeRecommendationResult,
+        TrustEligibilityProvider,
+        TrustPolicy,
+    )
 
 
 @dataclass(frozen=True)
@@ -189,6 +197,33 @@ class RecommendationEngine:
                 total_ms=self._elapsed_ms(started_at),
             ),
         )
+
+    def recommend_safe(
+        self,
+        user_id: Hashable,
+        top_k: int,
+        *,
+        trust_provider: TrustEligibilityProvider,
+        trust_policy: TrustPolicy | None = None,
+        top_m: int | None = None,
+    ) -> SafeRecommendationResult:
+        """Derive uncached Safe Top-K from cached-or-computed raw PYMK Top-M.
+
+        ``recommend`` remains the Phase-05 raw boundary. This method deliberately
+        requests the full Top-M from it, then performs Trust merging in memory; no
+        Safe Top-K payload is ever written to the recommendation cache.
+        """
+        from src.serving.trust_boundary import SafeTopKMerger
+
+        if top_k < 0:
+            raise ValueError("top_k must be non-negative")
+        effective_top_m = self._effective_top_m(top_k, top_m)
+        raw_result = self.recommend(
+            user_id,
+            top_k=effective_top_m,
+            top_m=effective_top_m,
+        )
+        return SafeTopKMerger(trust_policy).merge(raw_result, top_k, trust_provider)
 
     def build_cache_key(
         self,
