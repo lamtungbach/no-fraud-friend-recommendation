@@ -71,10 +71,12 @@ class SafeFilterResponse(BaseModel):
 
 
 class CandidateReRankInput(BaseModel):
-    """Ứng viên đầu vào kèm điểm liên quan PYMK và bạn chung uy tín cao."""
+    """Ứng viên đầu vào kèm điểm liên quan PYMK, bạn chung và chỉ số tương tác."""
     candidate_id: int = Field(..., ge=0, description="User ID của ứng viên")
     pymk_score: float = Field(..., ge=0.0, description="Điểm tương quan PYMK từ mô hình cấu trúc đồ thị")
+    mutual_total_count: int = Field(0, ge=0, description="Tổng số bạn chung giữa người nhận và ứng viên")
     mutual_tier1_count: int = Field(0, ge=0, description="Số bạn chung đạt Tier 1 Verified Safe giữa target user và ứng viên")
+    asymmetry_penalty: float = Field(0.0, ge=0.0, le=1.0, description="Hệ số phạt tương tác một chiều (0.0 = bình thường, 1.0 = spam nặng)")
 
 
 class CandidateReRankItem(BaseModel):
