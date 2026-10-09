@@ -12,6 +12,7 @@ from src.trust.schemas import (  # noqa: E402
     TrustProfileResponse,
 )
 from src.trust.scoring import (  # noqa: E402
+    calculate_dyadic_safety_score,
     calculate_final_ranking_score,
     calculate_trust_score,
     classify_trust_tier,
@@ -314,3 +315,117 @@ def test_rerank_deterministic_tie_breaker():
     # Tie break: candidate 5 must come before candidate 15
     assert res.ranked_candidates[0].candidate_id == 5
     assert res.ranked_candidates[1].candidate_id == 15
+
+
+def test_calculate_dyadic_safety_score_logic():
+    # 1. Bạn chung sạch 100% Tier 1 (5/5) -> dyadic = 1.0
+    score_clean = calculate_dyadic_safety_score(mutual_total_count=5, mutual_tier1_count=5)
+    assert abs(score_clean - 1.0) < 1e-6
+
+    # 2. Bẫy bạn chung: 10 bạn chung nhưng chỉ 1 bạn Tier 1 (1/10)
+    # alpha = 0.20 -> purity = 0.20 + 0.80 * 0.10 = 0.28
+    score_trap = calculate_dyadic_safety_score(mutual_total_count=10, mutual_tier1_count=1)
+    assert abs(score_trap - 0.28) < 1e-6
+
+    # 3. Bẫy bạn chung cực đoan: 10 bạn chung nhưng 0 bạn Tier 1
+    # purity = 0.20 + 0.80 * 0.0 = 0.20
+    score_extreme_trap = calculate_dyadic_safety_score(mutual_total_count=10, mutual_tier1_count=0)
+    assert abs(score_extreme_trap - 0.20) < 1e-6
+
+    # 4. Spam tương tác bất đối xứng (asymmetry penalty = 0.5)
+    score_spam = calculate_dyadic_safety_score(
+        mutual_total_count=5, mutual_tier1_count=5, asymmetry_penalty=0.5
+    )
+    assert abs(score_spam - 0.50) < 1e-6
+
+    # 5. Spam nặng (penalty = 1.0) -> dyadic = 0.0
+    score_heavy_spam = calculate_dyadic_safety_score(
+        mutual_total_count=5, mutual_tier1_count=5, asymmetry_penalty=1.0
+    )
+    assert score_heavy_spam == 0.0
+
+    # 6. Không có bạn chung (mutual_total = 0) -> không phạt bẫy bạn chung (dyadic = 1.0)
+    score_no_mutual = calculate_dyadic_safety_score(mutual_total_count=0, mutual_tier1_count=0)
+    assert abs(score_no_mutual - 1.0) < 1e-6
+
+    # 7. Clamping & boundary checks
+    score_overflow = calculate_dyadic_safety_score(
+        mutual_total_count=5, mutual_tier1_count=10, asymmetry_penalty=-0.5
+    )
+    assert abs(score_overflow - 1.0) < 1e-6
+
+
+def test_rerank_candidates_penalizes_triadic_trap():
+    """
+    Kiểm tra kịch bản phòng vệ bẫy bạn chung (Triadic Infiltration Defense):
+    Ứng viên A có điểm pymk_score cao (0.90) nhưng dính bẫy bạn chung (chỉ 1/10 bạn Tier 1).
+    Ứng viên B có điểm pymk_score vừa phải (0.60) nhưng bạn chung sạch 100% (3/3 bạn Tier 1).
+    Cả 2 đều thuộc Tier 2 (trust_score = 70.0).
+
+    Không có Dyadic:
+      A = 0.90 * 0.70 = 0.630
+      B = 0.60 * 0.70 = 0.420 -> A xếp trên B!
+    Có Dyadic:
+      A = 0.90 * 0.70 * 0.28 = 0.1764
+      B = 0.60 * 0.70 * 1.00 = 0.4200 -> B đè bẹp A và xếp trên A!
+    """
+    service = TrustService("/mock/non_existent.csv")
+    service.cache = {
+        101: TrustProfileResponse(
+            user_id=101,
+            ground_truth_label="Human",
+            p_bot=0.10,
+            trust_score=70.0,
+            recommendation_tier=RecommendationTier.TIER_2_STANDARD,
+            decision="[OK]",
+            is_recommendable=True,
+            pillars=PillarScores(identity_auth=0.7, interaction_health=0.7, network_hygiene=0.7, content_safety=0.7),
+        ),
+        102: TrustProfileResponse(
+            user_id=102,
+            ground_truth_label="Human",
+            p_bot=0.10,
+            trust_score=70.0,
+            recommendation_tier=RecommendationTier.TIER_2_STANDARD,
+            decision="[OK]",
+            is_recommendable=True,
+            pillars=PillarScores(identity_auth=0.7, interaction_health=0.7, network_hygiene=0.7, content_safety=0.7),
+        ),
+    }
+    service.is_loaded = True
+
+    inputs = [
+        # Ứng viên 101: Giăng bẫy bạn chung (10 bạn chung, chỉ 1 bạn Tier 1)
+        CandidateReRankInput(
+            candidate_id=101,
+            pymk_score=0.90,
+            mutual_total_count=10,
+            mutual_tier1_count=1,
+            asymmetry_penalty=0.0,
+        ),
+        # Ứng viên 102: Bạn chung trong sạch (3 bạn chung, cả 3 bạn Tier 1)
+        CandidateReRankInput(
+            candidate_id=102,
+            pymk_score=0.60,
+            mutual_total_count=3,
+            mutual_tier1_count=3,
+            asymmetry_penalty=0.0,
+        ),
+    ]
+
+    res = service.rerank_candidates(target_user_id=999, candidates=inputs)
+    assert res.total_candidates == 2
+    assert res.passed_count == 2
+
+    # Ứng viên 102 phải vươn lên Top 1
+    assert res.ranked_candidates[0].candidate_id == 102
+    assert abs(res.ranked_candidates[0].dyadic_safety_score - 1.0) < 1e-6
+    assert abs(res.ranked_candidates[0].final_ranking_score - 0.4200) < 1e-4
+
+    # Ứng viên 101 bị dìm xuống vị trí thứ 2
+    assert res.ranked_candidates[1].candidate_id == 101
+    assert abs(res.ranked_candidates[1].dyadic_safety_score - 0.28) < 1e-6
+    assert abs(res.ranked_candidates[1].final_ranking_score - 0.1764) < 1e-4
+
+    # Kiểm tra cảnh báo bẫy bạn chung xuất hiện trong lý do
+    assert "[CANH BAO BAY BAN CHUNG]" in res.ranked_candidates[1].reason

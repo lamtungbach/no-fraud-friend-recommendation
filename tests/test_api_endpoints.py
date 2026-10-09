@@ -181,3 +181,40 @@ def test_safe_rerank_endpoint():
     assert data["ranked_candidates"][1]["candidate_id"] == 4
     assert data["ranked_candidates"][2]["candidate_id"] == 1
     assert data["ranked_candidates"][0]["final_ranking_score"] > data["ranked_candidates"][1]["final_ranking_score"]
+
+
+def test_safe_rerank_endpoint_with_dyadic_safety():
+    # User 13 (Tier 1) vs User 4 (Tier 2):
+    # If candidate 13 has triadic trap (mutual_total=10, mutual_tier1=1) -> dyadic = 0.28
+    # If candidate 4 has clean mutuals (mutual_total=5, mutual_tier1=5) -> dyadic = 1.0
+    response = client.post(
+        "/api/v1/recommendations/safe-rerank",
+        json={
+            "target_user_id": 100,
+            "candidates": [
+                {
+                    "candidate_id": 13,
+                    "pymk_score": 0.8,
+                    "mutual_total_count": 10,
+                    "mutual_tier1_count": 1,
+                    "asymmetry_penalty": 0.0,
+                },
+                {
+                    "candidate_id": 4,
+                    "pymk_score": 0.8,
+                    "mutual_total_count": 5,
+                    "mutual_tier1_count": 5,
+                    "asymmetry_penalty": 0.0,
+                },
+            ],
+            "tier3_threshold": 5,
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["passed_count"] == 2
+    # Verify candidate 4 is promoted or dyadic scores are correctly returned
+    cand_map = {item["candidate_id"]: item for item in data["ranked_candidates"]}
+    assert abs(cand_map[4]["dyadic_safety_score"] - 1.0) < 1e-6
+    assert abs(cand_map[13]["dyadic_safety_score"] - 0.28) < 1e-6
+    assert "[CANH BAO BAY BAN CHUNG]" in cand_map[13]["reason"]
