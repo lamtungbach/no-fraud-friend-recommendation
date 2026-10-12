@@ -82,9 +82,11 @@ class ApiRuntime:
             if graph_version is None and not _allows_graphless_test_runtime(self.settings):
                 reasons.append("active_graph_missing")
             else:
-                self.artifact_store.validate_version(graph_version)
-                if self.active_index_holder.get() is None:
-                    reasons.append("active_index_unavailable")
+                bundle = self.active_index_holder.get()
+                if bundle is None or bundle.graph_version != graph_version:
+                    self.artifact_store.validate_version(graph_version)
+                    if self.active_index_holder.get() is None:
+                        reasons.append("active_index_unavailable")
         except (OSError, RuntimeError, TypeError, ValueError):
             if not _allows_graphless_test_runtime(self.settings):
                 reasons.append("active_graph_invalid")
