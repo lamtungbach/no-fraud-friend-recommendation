@@ -29,6 +29,8 @@ from src.serving import (
 )
 from src.serving.recommendation_engine import LatencyBreakdown, RecommendationResult
 from src.serving.trust_boundary import SafeTopKMerger
+from src.trust.schemas import RecommendationTier
+from src.trust.service import TrustService
 
 
 def _raw(ids=(10, 20, 30)):
@@ -203,6 +205,28 @@ def test_trust_service_adapter_validates_generic_ids_and_never_invents_tier3_cou
     assert by_id[30].reason_code == "MUTUAL_TIER1_COUNT_UNAVAILABLE"
     assert service.rerank_calls == 1
     assert result.trust_version == "linh-v2"
+
+
+def test_real_local_trust_csv_adapter_derives_safe_top_k():
+    """Exercise the actual CSV-backed Trust runtime, not a mock provider."""
+
+    service = TrustService()
+    candidate_id = next(
+        profile.user_id
+        for profile in service.cache.values()
+        if profile.recommendation_tier
+        in (RecommendationTier.TIER_1_VERIFIED, RecommendationTier.TIER_2_STANDARD)
+    )
+
+    result = SafeTopKMerger().merge(
+        _raw((candidate_id,)),
+        1,
+        TrustServiceEligibilityProvider(service, trust_version="linh-csv-local"),
+    )
+
+    assert service.is_loaded is True
+    assert [item.candidate_id for item in result.recommendations] == [candidate_id]
+    assert result.trust_version == "linh-csv-local"
 
 
 def _engine_with_cache(tmp_path):

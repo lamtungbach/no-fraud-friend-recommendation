@@ -58,6 +58,8 @@ class TrustRerankCandidateInput:
     candidate_id: int
     pymk_score: float
     mutual_tier1_count: int
+    mutual_total_count: int = 0
+    asymmetry_penalty: float = 0.0
 
 
 class TrustProviderError(RuntimeError):
@@ -125,6 +127,8 @@ class SafeRecommendationResult:
     trust_version: str
     trust_policy_version: str
     raw_cache_hit: bool
+    raw_candidate_count: int = 0
+    retrieval_truncated: bool = False
 
 
 class AllowAllTrustProvider:
@@ -378,6 +382,10 @@ class SafeTopKMerger:
             trust_version=trust_version,
             trust_policy_version=self._policy.version,
             raw_cache_hit=raw_result.cache_hit,
+            raw_candidate_count=len(raw),
+            retrieval_truncated=bool(
+                raw_result.retrieval_stats and raw_result.retrieval_stats.truncated
+            ),
         )
 
     def _action_for(self, decision: TrustCandidateResult) -> TrustAction:
