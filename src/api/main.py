@@ -4,28 +4,30 @@ Hệ thống API Gợi ý Bạn bè Không Gian lận (No-Fraud Friend Recommend
 """
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import health_router, trust_router
-from src.api.deps import get_trust_service
+from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+from src.api.config import ApiSettings
+from src.api.routers import health_router, recommendations_router, trust_router
+from src.api.runtime import ApiRuntime, build_runtime
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan event: Nạp trước hồ sơ tín nhiệm vào bộ nhớ lúc khởi động ứng dụng."""
-    service = get_trust_service()
-    if not service.is_loaded:
-        try:
-            count = service.load_profiles()
-            print(f"[API Startup] Da nap {count:,} ho so tin nhiem vao In-Memory Cache.")
-        except Exception as e:
-            print(f"[API Startup Warning] Khong the nap ho so tu dong: {e}")
+    """Dependencies are composed before startup; liveness remains available if Trust fails."""
+
+    del app
     yield
 
 
-def create_app() -> FastAPI:
+def create_app(
+    *, settings: ApiSettings | None = None, runtime: ApiRuntime | None = None
+) -> FastAPI:
     """Factory khởi tạo ứng dụng FastAPI."""
+    settings = settings or ApiSettings.from_environment()
+    runtime = runtime or build_runtime(settings)
     app = FastAPI(
         title="No-Fraud Friend Recommendation & Trust Agent API",
         description=(
@@ -39,19 +41,21 @@ def create_app() -> FastAPI:
         redoc_url="/redoc",
         lifespan=lifespan,
     )
-
-    # Cấu hình CORS
+    app.state.runtime = runtime
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
+        allow_origins=list(settings.cors_origins),
+        allow_credentials=settings.cors_allow_credentials,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Đăng ký các Routers
     app.include_router(health_router)
     app.include_router(trust_router)
+    app.include_router(recommendations_router)
+
+    @app.get("/metrics", include_in_schema=False)
+    def metrics() -> Response:
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     @app.get("/", tags=["Hệ thống"])
     def root():
@@ -60,7 +64,7 @@ def create_app() -> FastAPI:
             "version": "2.0.0",
             "status": "online",
             "docs": "/docs",
-            "health": "/health",
+            "health": "/health/live",
         }
 
     return app
@@ -70,4 +74,5 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("src.api.main:app", host="0.0.0.0", port=8000, reload=True)  # nosec B104

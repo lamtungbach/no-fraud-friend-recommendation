@@ -4,11 +4,12 @@ Khởi tạo Singleton TrustService & TrustAgent để tránh nạp lại dữ l
 """
 
 from functools import lru_cache
-from src.trust.service import TrustService
+
 from src.trust.agent import TrustAgent
+from src.trust.service import TrustService
 
 
-@lru_cache()
+@lru_cache
 def get_trust_service() -> TrustService:
     """Singleton instance của TrustService."""
     service = TrustService()

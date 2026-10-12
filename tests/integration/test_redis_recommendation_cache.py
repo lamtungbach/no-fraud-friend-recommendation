@@ -20,6 +20,7 @@ from src.retrieval import RetrievalConfig
 from src.serving import (
     ActiveGraphRegistry,
     LocalArtifactStore,
+    MockTrustProvider,
     RecommendationEngine,
     RedisRecommendationCache,
     ServingGraphIndex,
@@ -95,3 +96,47 @@ def test_redis_backed_engine_returns_a_miss_then_a_hit(tmp_path, isolated_redis_
     assert first.cache_hit is False
     assert second.cache_hit is True
     assert first.recommendations == second.recommendations
+
+
+def test_redis_raw_hit_still_invokes_trust_and_never_stores_safe_top_k(
+    tmp_path, isolated_redis_cache
+):
+    cache, client, prefix = isolated_redis_cache
+    node_ids = torch.tensor([0, 1, 2, 3])
+    edge_index = torch.tensor([[0, 0, 1, 2, 3, 3], [1, 2, 3, 3, 1, 2]])
+    canonical = CanonicalGraph(
+        node_ids=node_ids,
+        node_features=None,
+        edge_index=edge_index,
+        edge_type=torch.ones(edge_index.shape[1], dtype=torch.long),
+        edge_weight=None,
+    )
+    view = GraphView(node_ids=node_ids, edge_index=edge_index, directed=True)
+    store = LocalArtifactStore(tmp_path / "artifacts")
+    store.save_version(
+        "redis-safe-v1",
+        canonical,
+        view,
+        ServingGraphIndex.from_graph_view(view),
+        dataset_id="redis-safe-integration",
+    )
+    registry = ActiveGraphRegistry(store, tmp_path / "registry")
+    registry.activate("redis-safe-v1")
+    engine = RecommendationEngine(
+        store,
+        registry,
+        retrieval_config=RetrievalConfig(candidate_cap=10),
+        ranking_config=RankingConfig("cn", top_m=3),
+        cache=cache,
+    )
+    provider = MockTrustProvider()
+
+    first = engine.recommend_safe(0, top_k=1, trust_provider=provider)
+    second = engine.recommend_safe(0, top_k=1, trust_provider=provider)
+
+    assert first.raw_cache_hit is False
+    assert second.raw_cache_hit is True
+    assert len(provider.calls) == 2
+    cached_payloads = [client.get(key) for key in client.scan_iter(match=f"{prefix}:*")]
+    assert cached_payloads
+    assert all("trust_policy_version" not in payload for payload in cached_payloads)

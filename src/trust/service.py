@@ -5,7 +5,7 @@ Hỗ trợ cả tra cứu nhanh In-Memory Cache O(1) và tích hợp Bộ lọc 
 
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+
 import pandas as pd
 
 from src.trust.schemas import (
@@ -31,9 +31,9 @@ class TrustService:
     Service quản lý hồ sơ tín nhiệm người dùng và bộ lọc gian lận.
     """
 
-    def __init__(self, profiles_path: Optional[str] = None):
+    def __init__(self, profiles_path: str | None = None):
         self.profiles_path = profiles_path or self._default_profiles_path()
-        self.cache: Dict[int, TrustProfileResponse] = {}
+        self.cache: dict[int, TrustProfileResponse] = {}
         self.is_loaded = False
         if self.profiles_path and os.path.exists(self.profiles_path):
             self.load_profiles()
@@ -81,20 +81,20 @@ class TrustService:
         self.is_loaded = True
         return len(self.cache)
 
-    def get_user_profile(self, user_id: int) -> Optional[TrustProfileResponse]:
+    def get_user_profile(self, user_id: int) -> TrustProfileResponse | None:
         """
         Lấy thông tin tín nhiệm của 1 user. Trả về None nếu không tồn tại.
         """
         return self.cache.get(user_id)
 
-    def filter_safe_candidates(self, target_user_id: int, candidate_user_ids: List[int]) -> SafeFilterResponse:
+    def filter_safe_candidates(self, target_user_id: int, candidate_user_ids: list[int]) -> SafeFilterResponse:
         """
         Bộ lọc an toàn: Phân loại danh sách ứng viên thành 2 nhóm:
         - safe_candidates: Thuộc Tier 1 hoặc Tier 2 (đủ điều kiện gợi ý).
         - filtered_out_candidates: Thuộc Tier 3 hoặc Tier 4 (bị chặn/cảnh giác).
         """
-        safe_list: List[CandidateFilterItem] = []
-        blocked_list: List[CandidateFilterItem] = []
+        safe_list: list[CandidateFilterItem] = []
+        blocked_list: list[CandidateFilterItem] = []
 
         for c_id in candidate_user_ids:
             cand = self.cache.get(c_id)
@@ -133,7 +133,7 @@ class TrustService:
     def rerank_candidates(
         self,
         target_user_id: int,
-        candidates: List[CandidateReRankInput],
+        candidates: list[CandidateReRankInput],
         tier3_threshold: int = 5,
     ) -> SafeReRankResponse:
         """
@@ -143,8 +143,8 @@ class TrustService:
         3. Áp dụng chính sách can thiệp phân tầng (Tier 1-4, cứu xét Tier 3 nếu mutual_tier1_count >= tier3_threshold).
         4. Sắp xếp tất định: final_ranking_score DESC, candidate_id ASC.
         """
-        passed_list: List[CandidateReRankItem] = []
-        blocked_list: List[CandidateReRankItem] = []
+        passed_list: list[CandidateReRankItem] = []
+        blocked_list: list[CandidateReRankItem] = []
 
         for cand_in in candidates:
             c_id = cand_in.candidate_id

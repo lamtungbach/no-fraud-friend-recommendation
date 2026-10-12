@@ -1,0 +1,3 @@
+[lint.per-file-ignores]
+# FastAPI declares dependencies in endpoint defaults; this is intentional.
+"src/api/routers/*.py" = ["B008"]

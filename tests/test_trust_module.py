@@ -1,17 +1,20 @@
 from pathlib import Path
+
 import pytest
 
 pytest.importorskip("pydantic")
 
-import torch  # noqa: E402
+import torch
 
-from src.trust.schemas import (  # noqa: E402
+from src.trust.agent import TrustAgent
+from src.trust.models import FraudDetectionRGCN
+from src.trust.schemas import (
     CandidateReRankInput,
     PillarScores,
     RecommendationTier,
     TrustProfileResponse,
 )
-from src.trust.scoring import (  # noqa: E402
+from src.trust.scoring import (
     calculate_dyadic_safety_score,
     calculate_final_ranking_score,
     calculate_trust_score,
@@ -19,9 +22,7 @@ from src.trust.scoring import (  # noqa: E402
     evaluate_candidate_admission,
     get_decision_meta,
 )
-from src.trust.models import FraudDetectionRGCN  # noqa: E402
-from src.trust.service import TrustService  # noqa: E402
-from src.trust.agent import TrustAgent  # noqa: E402
+from src.trust.service import TrustService
 
 
 def test_trust_scoring_formula():
@@ -64,13 +65,13 @@ def test_get_decision_meta():
     assert rec1 is True
     assert "[OK]" in dec1
 
-    dec2, rec2 = get_decision_meta(RecommendationTier.TIER_2_STANDARD)
+    _dec2, rec2 = get_decision_meta(RecommendationTier.TIER_2_STANDARD)
     assert rec2 is True
 
-    dec3, rec3 = get_decision_meta(RecommendationTier.TIER_3_RESTRICTED)
+    _dec3, rec3 = get_decision_meta(RecommendationTier.TIER_3_RESTRICTED)
     assert rec3 is False
 
-    dec4, rec4 = get_decision_meta(RecommendationTier.TIER_4_FRAUD)
+    _dec4, rec4 = get_decision_meta(RecommendationTier.TIER_4_FRAUD)
     assert rec4 is False
 
 

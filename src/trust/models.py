@@ -3,8 +3,8 @@ Kiến trúc Mạng nơ-ron Đồ thị Đa quan hệ (R-GCN) phát hiện gian 
 """
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 
 class NormalizedRGCNLayer(nn.Module):
