@@ -6,7 +6,7 @@ import hashlib
 import json
 import math
 import time
-from collections.abc import Hashable
+from collections.abc import Callable, Hashable
 from dataclasses import asdict, dataclass, replace
 from typing import TYPE_CHECKING
 
@@ -17,7 +17,7 @@ from src.retrieval import (
     retrieve_bounded_two_hop_candidates,
 )
 from src.serving.active_registry import ActiveGraphRegistry
-from src.serving.artifact_store import ArtifactStore
+from src.serving.artifact_store import ArtifactBundle, ArtifactStore
 from src.serving.recommendation_cache import (
     CacheUnavailableError,
     NoOpRecommendationCache,
@@ -85,6 +85,7 @@ class RecommendationEngine:
         ranking_config: RankingConfig | None = None,
         cache: RecommendationCache | None = None,
         cache_ttl_seconds: float = 300.0,
+        active_bundle_getter: Callable[[], ArtifactBundle | None] | None = None,
     ):
         if cache_ttl_seconds <= 0:
             raise ValueError("cache_ttl_seconds must be positive")
@@ -94,6 +95,7 @@ class RecommendationEngine:
         self._ranking_config = ranking_config or RankingConfig()
         self._cache = cache or NoOpRecommendationCache()
         self._cache_ttl_seconds = cache_ttl_seconds
+        self._active_bundle_getter = active_bundle_getter
         self._retrieval_config_hash = self._config_hash(asdict(self._retrieval_config))
 
     def recommend(
@@ -117,7 +119,12 @@ class RecommendationEngine:
         ranking_config_hash = self._config_hash(asdict(effective_ranking))
         started_at = time.perf_counter()
 
-        graph_version = self._active_registry.get_active_version()
+        active_bundle = self._active_bundle_getter() if self._active_bundle_getter else None
+        graph_version = (
+            active_bundle.graph_version
+            if active_bundle is not None
+            else self._active_registry.get_active_version()
+        )
         if graph_version is None:
             raise RuntimeError("No active graph version is registered")
         cache_key = self.build_cache_key(
@@ -156,7 +163,7 @@ class RecommendationEngine:
                 ),
             )
 
-        bundle = self._artifact_store.load_version(graph_version)
+        bundle = active_bundle or self._artifact_store.load_version(graph_version)
         retrieval_started_at = time.perf_counter()
         retrieval = retrieve_bounded_two_hop_candidates(
             user_id, bundle.serving_index, self._retrieval_config
