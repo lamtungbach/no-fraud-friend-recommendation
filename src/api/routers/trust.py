@@ -2,7 +2,8 @@
 Router phục vụ các chức năng Thẩm định Tín nhiệm & Lọc Gợi ý An toàn (Trust & Fraud API).
 """
 
-from typing import Any, Dict, List
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from src.api.deps import get_trust_agent, get_trust_service
@@ -59,7 +60,7 @@ def check_user_trust_by_body(
 
 @router.post(
     "/trust/batch",
-    response_model=List[TrustProfileResponse],
+    response_model=list[TrustProfileResponse],
     summary="3. Kiểm tra hàng loạt nhiều User ID cùng lúc",
 )
 def check_batch_trust(
@@ -81,7 +82,7 @@ def check_batch_trust(
 def inspect_and_reason(
     req: SingleUserRequest,
     agent: TrustAgent = Depends(get_trust_agent),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Quy trình Agentic multi-step reasoning:
     Phân tích rủi ro Bot từ R-GCN + Đánh giá 4 trụ cột + Trả về chuỗi suy luận (Reasoning Trace).

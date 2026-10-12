@@ -3,11 +3,15 @@ import pytest
 pytest.importorskip("fastapi")
 pytest.importorskip("pydantic")
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from src.api.main import app  # noqa: E402
-from src.api.deps import get_trust_service  # noqa: E402
-from src.trust.schemas import PillarScores, RecommendationTier, TrustProfileResponse  # noqa: E402
+from src.api.deps import get_trust_service
+from src.api.main import app
+from src.trust.schemas import (
+    PillarScores,
+    RecommendationTier,
+    TrustProfileResponse,
+)
 
 client = TestClient(app)
 

@@ -3,7 +3,8 @@ Agent Thẩm định Tín nhiệm & Phát hiện Gian lận (Trust & Fraud Detec
 Áp dụng tư duy Agentic: Multi-step reasoning + Tool Calling để giải thích quyết định.
 """
 
-from typing import Any, Dict, List
+from typing import Any
+
 from src.trust.schemas import TrustProfileResponse
 from src.trust.service import TrustService
 
@@ -17,7 +18,7 @@ class TrustAgent:
     def __init__(self, service: TrustService):
         self.service = service
 
-    def tool_get_profile(self, user_id: int) -> Dict[str, Any]:
+    def tool_get_profile(self, user_id: int) -> dict[str, Any]:
         """Tool 1: Lấy hồ sơ người dùng."""
         profile = self.service.get_user_profile(user_id)
         if profile is None:
@@ -33,7 +34,7 @@ class TrustAgent:
         else:
             return f"Rủi ro Thấp: Xác suất Bot = {p_bot:.2%}, hành vi giống người thật."
 
-    def tool_analyze_pillars(self, profile: TrustProfileResponse) -> List[str]:
+    def tool_analyze_pillars(self, profile: TrustProfileResponse) -> list[str]:
         """Tool 3: Phân tích 4 trụ cột để phát hiện điểm yếu hoặc bất thường."""
         insights = []
         p = profile.pillars
@@ -49,7 +50,7 @@ class TrustAgent:
             insights.append("Tất cả các trụ cột tín nhiệm đều ở mức an toàn ổn định.")
         return insights
 
-    def inspect_and_reason(self, user_id: int) -> Dict[str, Any]:
+    def inspect_and_reason(self, user_id: int) -> dict[str, Any]:
         """
         Quy trình suy luận đa bước (Multi-step Reasoning):
         Bước 1: Gọi Tool 1 tra cứu hồ sơ.

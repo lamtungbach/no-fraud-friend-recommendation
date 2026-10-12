@@ -4,7 +4,7 @@ Schemas Pydantic cho Trust & Fraud Detection Module.
 """
 
 from enum import Enum
-from typing import List
+
 from pydantic import BaseModel, Field
 
 
@@ -44,13 +44,13 @@ class SingleUserRequest(BaseModel):
 
 class BatchTrustRequest(BaseModel):
     """Yêu cầu thẩm định cho một danh sách User ID."""
-    user_ids: List[int] = Field(..., description="Danh sách các User ID cần kiểm tra điểm số")
+    user_ids: list[int] = Field(..., description="Danh sách các User ID cần kiểm tra điểm số")
 
 
 class SafeFilterRequest(BaseModel):
     """Yêu cầu lọc danh sách ứng viên kết bạn từ PYMK Engine."""
     target_user_id: int = Field(..., description="User ID của người nhận gợi ý kết bạn")
-    candidate_user_ids: List[int] = Field(..., description="Danh sách candidate do PYMK đề xuất")
+    candidate_user_ids: list[int] = Field(..., description="Danh sách candidate do PYMK đề xuất")
 
 
 class CandidateFilterItem(BaseModel):
@@ -66,8 +66,8 @@ class SafeFilterResponse(BaseModel):
     target_user_id: int
     total_candidates: int
     safe_recommendations_count: int
-    safe_candidates: List[CandidateFilterItem] = Field(..., description="Ứng viên an toàn được phép gợi ý (Tier 1 & Tier 2)")
-    filtered_out_candidates: List[CandidateFilterItem] = Field(..., description="Ứng viên bị chặn/cảnh giác (Tier 3 & Tier 4)")
+    safe_candidates: list[CandidateFilterItem] = Field(..., description="Ứng viên an toàn được phép gợi ý (Tier 1 & Tier 2)")
+    filtered_out_candidates: list[CandidateFilterItem] = Field(..., description="Ứng viên bị chặn/cảnh giác (Tier 3 & Tier 4)")
 
 
 class CandidateReRankInput(BaseModel):
@@ -94,7 +94,7 @@ class CandidateReRankItem(BaseModel):
 class SafeReRankRequest(BaseModel):
     """Yêu cầu tái xếp hạng danh sách ứng viên kết bạn."""
     target_user_id: int = Field(..., ge=0, description="User ID của người nhận gợi ý kết bạn")
-    candidates: List[CandidateReRankInput] = Field(..., description="Danh sách ứng viên kèm điểm PYMK từ recommendation engine")
+    candidates: list[CandidateReRankInput] = Field(..., description="Danh sách ứng viên kèm điểm PYMK từ recommendation engine")
     tier3_threshold: int = Field(5, ge=1, description="Số lượng bạn chung Tier 1 tối thiểu để cho phép hiển thị ứng viên Tier 3")
 
 
@@ -104,5 +104,5 @@ class SafeReRankResponse(BaseModel):
     total_candidates: int
     passed_count: int
     blocked_count: int
-    ranked_candidates: List[CandidateReRankItem] = Field(..., description="Danh sách ứng viên an toàn đã được tái xếp hạng giảm dần")
-    blocked_candidates: List[CandidateReRankItem] = Field(..., description="Danh sách ứng viên bị loại bỏ (Tier 4 hoặc Tier 3 thiếu bảo lãnh)")
+    ranked_candidates: list[CandidateReRankItem] = Field(..., description="Danh sách ứng viên an toàn đã được tái xếp hạng giảm dần")
+    blocked_candidates: list[CandidateReRankItem] = Field(..., description="Danh sách ứng viên bị loại bỏ (Tier 4 hoặc Tier 3 thiếu bảo lãnh)")

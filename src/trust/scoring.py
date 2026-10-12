@@ -2,7 +2,9 @@
 Công thức tính điểm Tín nhiệm 4 Trụ cột và Phân tầng Chính sách (Trust Scoring & Tier Classification).
 """
 
-from typing import Tuple
+
+from collections.abc import Sequence
+
 from src.trust.schemas import RecommendationTier
 
 # Trọng số tối ưu học được từ phân tích độ nhạy KS-statistic trong Sprint 1:
@@ -16,7 +18,7 @@ def calculate_trust_score(
     s_network: float,
     s_content: float,
     g_auth: float = 1.0,
-    weights: list = None
+    weights: Sequence[float] | None = None,
 ) -> float:
     """
     Tính điểm tín nhiệm toàn diện S_trust (thang điểm 0 - 100).
@@ -53,7 +55,7 @@ def classify_trust_tier(score: float, p_bot: float, s_auth: float) -> Recommenda
         return RecommendationTier.TIER_1_VERIFIED
 
 
-def get_decision_meta(tier: RecommendationTier) -> Tuple[str, bool]:
+def get_decision_meta(tier: RecommendationTier) -> tuple[str, bool]:
     """
     Trả về thông điệp quyết định nghiệp vụ và cờ cho phép gợi ý (is_recommendable).
     """
@@ -121,7 +123,7 @@ def evaluate_candidate_admission(
     tier: RecommendationTier,
     mutual_tier1_count: int = 0,
     tier3_threshold: int = 5,
-) -> Tuple[bool, str]:
+) -> tuple[bool, str]:
     """
     Đánh giá điều kiện cho phép hiển thị ứng viên theo chính sách can thiệp phân tầng:
     - Tier 1 (Verified Safe): Cho phép hiển thị, ưu tiên top đầu.
