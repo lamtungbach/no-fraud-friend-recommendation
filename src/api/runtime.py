@@ -44,12 +44,13 @@ class ApiRuntime:
         graph_version: str | None = None
         try:
             graph_version = self.active_registry.get_active_version()
-            if graph_version is None:
+            if graph_version is None and not _allows_graphless_test_runtime(self.settings):
                 reasons.append("active_graph_missing")
             else:
                 self.artifact_store.validate_version(graph_version)
         except (OSError, RuntimeError, TypeError, ValueError):
-            reasons.append("active_graph_invalid")
+            if not _allows_graphless_test_runtime(self.settings):
+                reasons.append("active_graph_invalid")
         if self.settings.trust_provider != "csv" and self.settings.environment != "test":
             reasons.append("non_test_trust_provider")
         if (
@@ -107,6 +108,12 @@ def _build_cache(settings: ApiSettings) -> RecommendationCache:
     if not settings.redis_url:
         return NoOpRecommendationCache()
     return RedisRecommendationCache(settings.redis_url)
+
+
+def _allows_graphless_test_runtime(settings: ApiSettings) -> bool:
+    """Permit explicit fake Trust providers in isolated HTTP contract tests."""
+
+    return settings.environment == "test" and settings.trust_provider in {"mock", "allow-all"}
 
 
 class _UnavailableTrustProvider:
