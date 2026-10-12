@@ -17,8 +17,15 @@ from src.api.runtime import ApiRuntime, build_runtime
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Dependencies are composed before startup; liveness remains available if Trust fails."""
-
-    del app
+    runtime = app.state.runtime
+    warm = getattr(runtime, "warm_active_index", None)
+    if callable(warm):
+        try:
+            warm()
+        except (OSError, RuntimeError, TypeError, ValueError):
+            # ApiRuntime captures startup index failures for readiness; a custom
+            # test runtime may choose the same behavior without blocking liveness.
+            pass
     yield
 
 
