@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trust-service-config
+data:
+  API_ENVIRONMENT: "development"
+  TRUST_PROVIDER: "csv"
+  TRUST_PROFILES_PATH: "/app/data/mgtab_user_trust_profiles_v2.csv"
+  MAX_TOP_K: "10"
+  RAW_TOP_M: "50"
+  CORS_ALLOW_ORIGINS: "http://localhost:3000,http://127.0.0.1:3000,http://localhost:80"
