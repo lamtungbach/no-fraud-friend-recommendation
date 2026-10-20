@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+:root {
+  --bg-base: #0a0d14;
+  --bg-surface: #111827;
+  --bg-elevated: #1a2235;
+  --bg-card: #1e2a3d;
+  --border-subtle: #2d3748;
+  --border-default: #3d4f6a;
+  --text-primary: #f0f4ff;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-blue: #3b82f6;
+  --accent-blue-light: #60a5fa;
+  --accent-cyan: #06b6d4;
+  --color-safe: #10b981;
+  --color-safe-bg: rgba(16, 185, 129, 0.12);
+  --color-suspicious: #f59e0b;
+  --color-suspicious-bg: rgba(245, 158, 11, 0.12);
+  --color-blocked: #ef4444;
+  --color-blocked-bg: rgba(239, 68, 68, 0.12);
+  --color-tier1: #10b981;
+  --color-tier2: #3b82f6;
+  --color-tier3: #f59e0b;
+  --color-tier4: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
+}
+
+/* Tier badge colors */
+.tier-1 { color: var(--color-tier1); background-color: rgba(16, 185, 129, 0.12); }
+.tier-2 { color: var(--color-tier2); background-color: rgba(59, 130, 246, 0.12); }
+.tier-3 { color: var(--color-tier3); background-color: rgba(245, 158, 11, 0.12); }
+.tier-4 { color: var(--color-tier4); background-color: rgba(239, 68, 68, 0.12); }
+
+/* Card animations */
+.card-hover {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Pulse animation for loading */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pulse-slow {
+  animation: pulse-slow 2s ease-in-out infinite;
+}
+
+/* Score bar */
+.score-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border-subtle);
+  overflow: hidden;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}

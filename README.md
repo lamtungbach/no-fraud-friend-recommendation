@@ -72,14 +72,32 @@ The default experiment uses seed 42, a 70/15/15 train/validation/test split, and
 ## Project layout
 
 ```text
-src/          Dataset adapter, link tasks, split/masking, candidates, baselines, evaluation
+src/          Dataset adapter, link tasks, split/masking, candidates, baselines, evaluation, trust module, API
 scripts/      Reproducible validation and experiment entry points
+frontend/     React + Vite + Tailwind interactive demo dashboard
 notebooks/    Exploratory analysis notebooks
 tests/        Unit tests
 docs/         Experiment reports and implementation notes
 results/      Generated aggregate results and figures
 data/raw/     Local MGTAB download only; ignored by Git
 ```
+
+## Interactive Web Demo (Trust-Aware PYMK Dashboard)
+
+To launch the web demonstration:
+
+1. Start the FastAPI backend:
+   ```powershell
+   python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+2. Start the frontend:
+   ```powershell
+   cd frontend
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser. (The UI includes a Mock Mode toggle to test interactions even if the backend is offline).
+
 
 ## Citation and attribution
 
