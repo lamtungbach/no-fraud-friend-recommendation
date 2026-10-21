@@ -52,7 +52,12 @@ def test_candidates_exclude_self_direct_neighbors_and_duplicates():
 
     assert result.candidate_ids == (3,)
     assert result.stats.second_hop_expansions == 5
+    assert result.stats.second_hop_seen == 5
+    assert result.stats.second_hop_used == 5
     assert result.stats.candidates_before_cap == 1
+    assert result.stats.excluded_self == 2
+    assert result.stats.excluded_existing_connection == 1
+    assert result.stats.duplicate_candidates == 1
     assert result.stats.truncated is False
 
 
@@ -66,6 +71,7 @@ def test_first_hop_cap_uses_deterministic_first_adjacency_entries():
     assert result.candidate_ids == (4,)
     assert result.stats.first_hop_seen == 2
     assert result.stats.first_hop_used == 1
+    assert result.stats.first_hop_capped is True
     assert result.stats.truncated is True
 
 
@@ -78,6 +84,9 @@ def test_second_hop_cap_is_applied_per_first_hop_neighbor():
 
     assert result.candidate_ids == (3, 5)
     assert result.stats.second_hop_expansions == 2
+    assert result.stats.second_hop_seen == 4
+    assert result.stats.second_hop_used == 2
+    assert result.stats.second_hop_capped is True
     assert result.stats.truncated is True
 
 
@@ -91,6 +100,7 @@ def test_candidate_cap_preserves_deterministic_discovery_order_and_stats():
     assert result.candidate_ids == (3, 4)
     assert result.stats.candidates_before_cap == 4
     assert result.stats.candidates_returned == 2
+    assert result.stats.candidate_capped is True
     assert result.stats.truncated is True
 
 

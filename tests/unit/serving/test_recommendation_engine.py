@@ -13,12 +13,18 @@ from src.ranking import RankingConfig
 from src.retrieval import RetrievalConfig
 from src.serving import (
     ActiveGraphRegistry,
+    AllowAllTrustProvider,
     CacheUnavailableError,
+    Eligibility,
     InMemoryRecommendationCache,
     LocalArtifactStore,
+    MockTrustProvider,
+    PathEvidenceConfig,
     RecommendationCache,
     RecommendationEngine,
     ServingGraphIndex,
+    TrustBatchResult,
+    TrustCandidateResult,
 )
 from src.serving.recommendation_cache import RedisRecommendationCache
 
@@ -220,6 +226,189 @@ def test_invalid_user_and_empty_candidate_pool(active_store):
     assert empty_first.recommendations == ()
     assert empty_first.cache_hit is False
     assert empty_second.cache_hit is True
+
+
+def test_safe_details_explain_only_safe_candidates_with_actual_topology(active_store):
+    store, registry = active_store
+    engine = _engine(store, registry)
+    provider = MockTrustProvider(
+        TrustBatchResult(
+            candidates=(
+                TrustCandidateResult(3, Eligibility.BLOCKED),
+                TrustCandidateResult(4, Eligibility.ELIGIBLE),
+            ),
+            trust_version="mock-v1",
+        )
+    )
+
+    details = engine.recommend_safe_details(
+        0,
+        top_k=2,
+        top_m=4,
+        trust_provider=provider,
+        include_explanations=True,
+    )
+
+    assert [item.candidate_id for item in details.safe_result.recommendations] == [4]
+    assert [item.candidate_id for item in details.explanations] == [4]
+    explanation = details.explanations[0]
+    assert explanation.graph_version == "graph-v1"
+    assert explanation.graph_semantics == "directed"
+    assert explanation.ranking_method == "cn"
+    assert explanation.score == 1.0
+    assert explanation.common_neighbors == 1.0
+    assert explanation.jaccard == pytest.approx(1 / 2)
+    assert "Trust eligibility is a separate gate" in explanation.note
+
+
+def test_safe_details_cache_hit_does_not_rerun_raw_stages_but_rechecks_trust(
+    active_store, monkeypatch
+):
+    store, registry = active_store
+    engine = _engine(store, registry, cache=InMemoryRecommendationCache())
+    provider = MockTrustProvider()
+    calls = 0
+
+    from src.serving import recommendation_engine
+
+    original = recommendation_engine.retrieve_bounded_two_hop_candidates
+
+    def counted(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(recommendation_engine, "retrieve_bounded_two_hop_candidates", counted)
+    first = engine.recommend_safe_details(0, 2, top_m=4, trust_provider=provider)
+    second = engine.recommend_safe_details(0, 2, top_m=4, trust_provider=provider)
+
+    assert calls == 1
+    assert len(provider.calls) == 2
+    assert first.diagnostics.stage_execution == "computed"
+    assert first.diagnostics.first_hop_seen == 2
+    assert first.diagnostics.scored_candidates == 2
+    assert first.diagnostics.retrieval_ms is not None
+    assert first.diagnostics.scoring_ms is not None
+    assert second.diagnostics.stage_execution == "cache_hit"
+    assert second.diagnostics.first_hop_seen is None
+    assert second.diagnostics.scored_candidates is None
+    assert second.diagnostics.retrieval_ms is None
+    assert second.diagnostics.scoring_ms is None
+    assert second.diagnostics.raw_ranked_count == 2
+    assert second.safe_result.raw_cache_hit is True
+
+
+def test_safe_details_default_does_not_add_explanation_work(active_store, monkeypatch):
+    store, registry = active_store
+    engine = _engine(store, registry)
+
+    monkeypatch.setattr(
+        engine,
+        "_explain_safe_recommendations",
+        lambda *_args: pytest.fail("explanations must be opt-in"),
+    )
+
+    details = engine.recommend_safe_details(
+        0, 1, top_m=4, trust_provider=AllowAllTrustProvider()
+    )
+
+    assert details.explanations == ()
+
+
+def test_safe_path_summaries_use_real_directed_paths_for_safe_candidates(active_store):
+    store, registry = active_store
+    engine = RecommendationEngine(
+        store,
+        registry,
+        retrieval_config=RetrievalConfig(candidate_cap=10),
+        ranking_config=RankingConfig("cn", top_m=4),
+        path_evidence_config=PathEvidenceConfig(max_sampled_paths=1, first_hop_scan_cap=10),
+    )
+    provider = MockTrustProvider(
+        TrustBatchResult(
+            candidates=(
+                TrustCandidateResult(3, Eligibility.BLOCKED),
+                TrustCandidateResult(4, Eligibility.ELIGIBLE),
+            ),
+            trust_version="mock-v1",
+        )
+    )
+
+    details = engine.recommend_safe_details(
+        0,
+        top_k=2,
+        top_m=4,
+        trust_provider=provider,
+        include_path_summaries=True,
+    )
+
+    assert [item.candidate_id for item in details.path_summaries] == [4]
+    summary = details.path_summaries[0]
+    assert summary.graph_version == "graph-v1"
+    assert summary.graph_semantics == "directed"
+    assert summary.path_count_total == 2
+    assert summary.path_count_observed == 2
+    assert summary.sampled_path_count == 1
+    assert summary.scan_truncated is False
+    assert summary.truncated is True
+    assert summary.edge_type_evidence_available is False
+
+
+def test_safe_path_summaries_report_scan_truncation_without_inventing_total(active_store):
+    store, registry = active_store
+    engine = RecommendationEngine(
+        store,
+        registry,
+        retrieval_config=RetrievalConfig(candidate_cap=10),
+        ranking_config=RankingConfig("cn", top_m=4),
+        path_evidence_config=PathEvidenceConfig(max_sampled_paths=1, first_hop_scan_cap=1),
+    )
+
+    details = engine.recommend_safe_details(
+        0,
+        top_k=1,
+        top_m=4,
+        trust_provider=AllowAllTrustProvider(),
+        include_path_summaries=True,
+    )
+
+    summary = details.path_summaries[0]
+    assert summary.path_count_total is None
+    assert summary.path_count_observed == 1
+    assert summary.scan_truncated is True
+    assert summary.truncated is True
+
+
+def test_empty_result_context_uses_observable_evidence_only(active_store):
+    store, registry = active_store
+    engine = _engine(store, registry, cache=InMemoryRecommendationCache())
+
+    isolated = engine.recommend_safe_details(
+        6,
+        top_k=1,
+        top_m=4,
+        trust_provider=AllowAllTrustProvider(),
+        include_empty_result_context=True,
+    )
+    assert isolated.safe_result.recommendations == ()
+    assert isolated.empty_result_context is not None
+    assert isolated.empty_result_context.status == "ISOLATED_USER"
+
+    class UnavailableTrustProvider:
+        def batch_check(self, user_id, candidate_ids, *, pymk_scores=None):
+            del user_id, candidate_ids, pymk_scores
+            raise RuntimeError("unavailable")
+
+    fail_closed = engine.recommend_safe_details(
+        0,
+        top_k=1,
+        top_m=4,
+        trust_provider=UnavailableTrustProvider(),
+        include_empty_result_context=True,
+    )
+    assert fail_closed.safe_result.recommendations == ()
+    assert fail_closed.empty_result_context is not None
+    assert fail_closed.empty_result_context.status == "TRUST_UNAVAILABLE_FAIL_CLOSED"
 
 
 def test_corrupted_and_incompatible_cache_payloads_are_cache_misses(active_store):

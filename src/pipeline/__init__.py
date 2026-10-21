@@ -5,6 +5,7 @@ from .events import (
     GraphIndexReadyEvent,
     InMemoryEventPublisher,
 )
+from .job_service import LocalDatasetJobService
 from .metadata import (
     InMemoryMetadataRepository,
     JobAlreadyClaimedError,
@@ -24,6 +25,7 @@ __all__ = [
     "InMemoryMetadataRepository",
     "JobAlreadyClaimedError",
     "JobStatus",
+    "LocalDatasetJobService",
     "PostgresMetadataRepository",
     "ServingIndexReloader",
 ]

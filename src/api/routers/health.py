@@ -33,6 +33,10 @@ def ready_check(request: Request, response: Response):
         "environment": runtime.settings.environment,
         "graph_version": graph_version,
         "trust_provider": runtime.settings.trust_provider,
+        # This is a read-only contract limit. Exposing it prevents a demo
+        # client from offering a value that the recommendation endpoint will
+        # necessarily reject, while the endpoint remains the authority.
+        "max_top_k": runtime.settings.max_top_k,
         "reasons": reasons,
     }
 

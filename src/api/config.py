@@ -29,8 +29,13 @@ class ApiSettings:
     max_top_k: int = 10
     raw_top_m: int = 50
     cache_ttl_seconds: float = 300.0
+    path_evidence_max_paths: int = 5
+    path_evidence_scan_cap: int = 250
     cors_origins: tuple[str, ...] = ()
     cors_allow_credentials: bool = False
+    postgres_dsn: str | None = None
+    phase08_admin_enabled: bool = False
+    mgtab_dataset_dir: Path = Path("data/raw/MGTAB")
 
     def __post_init__(self) -> None:
         if self.environment not in {"development", "test", "production"}:
@@ -49,6 +54,14 @@ class ApiSettings:
             raise ValueError("RAW_TOP_M must be greater than or equal to MAX_TOP_K")
         if self.cache_ttl_seconds <= 0:
             raise ValueError("CACHE_TTL_SECONDS must be positive")
+        if not 1 <= self.path_evidence_max_paths <= 10:
+            raise ValueError("PATH_EVIDENCE_MAX_PATHS must be between 1 and 10")
+        if self.path_evidence_scan_cap < self.path_evidence_max_paths:
+            raise ValueError("PATH_EVIDENCE_SCAN_CAP must be at least PATH_EVIDENCE_MAX_PATHS")
+        if self.phase08_admin_enabled and self.environment != "development":
+            raise ValueError("Phase 08 dataset jobs are available only in development")
+        if self.phase08_admin_enabled and not self.postgres_dsn:
+            raise ValueError("PHASE08_ADMIN_ENABLED requires POSTGRES_DSN")
 
     @classmethod
     def from_environment(cls) -> ApiSettings:
@@ -70,6 +83,8 @@ class ApiSettings:
             max_top_k=int(os.getenv("MAX_TOP_K", "10")),
             raw_top_m=int(os.getenv("RAW_TOP_M", "50")),
             cache_ttl_seconds=float(os.getenv("CACHE_TTL_SECONDS", "300")),
+            path_evidence_max_paths=int(os.getenv("PATH_EVIDENCE_MAX_PATHS", "5")),
+            path_evidence_scan_cap=int(os.getenv("PATH_EVIDENCE_SCAN_CAP", "250")),
             cors_origins=_csv(
                 os.getenv(
                     "CORS_ALLOW_ORIGINS",
@@ -80,4 +95,8 @@ class ApiSettings:
                 "CORS_ALLOW_CREDENTIALS", "false" if environment == "production" else "true"
             ).lower()
             in {"1", "true", "yes"},
+            postgres_dsn=os.getenv("POSTGRES_DSN") or None,
+            phase08_admin_enabled=os.getenv("PHASE08_ADMIN_ENABLED", "false").lower()
+            in {"1", "true", "yes"},
+            mgtab_dataset_dir=Path(os.getenv("MGTAB_DATASET_DIR", "data/raw/MGTAB")),
         )

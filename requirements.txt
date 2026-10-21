@@ -68,8 +68,8 @@ networkx==3.6.1
 notebook==7.6.3
 notebook-shim==0.2.4
 numpy==2.5.3
-packaging==26.3
-pandas==3.0.6
+packaging==24.2
+pandas==2.3.3
 pandocfilters==1.5.1
 parso==0.8.7
 pillow==12.3.0
@@ -102,6 +102,7 @@ six==1.17.0
 soupsieve==2.9.2
 stack-data==0.6.3
 starlette==1.7.0
+streamlit==1.54.0
 terminado==0.18.1
 threadpoolctl==3.7.0
 tinycss2==1.5.1

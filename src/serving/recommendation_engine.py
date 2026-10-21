@@ -10,7 +10,12 @@ from collections.abc import Callable, Hashable
 from dataclasses import asdict, dataclass, replace
 from typing import TYPE_CHECKING
 
-from src.ranking import RankedCandidate, RankingConfig, rank_topology_candidates
+from src.ranking import (
+    RankedCandidate,
+    RankingConfig,
+    rank_topology_candidates,
+    score_topology_candidates,
+)
 from src.retrieval import (
     RetrievalConfig,
     RetrievalStats,
@@ -51,6 +56,8 @@ class LatencyBreakdown:
     retrieval_ms: float
     scoring_ms: float
     total_ms: float
+    cache_lookup_ms: float | None = None
+    cache_write_ms: float | None = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +73,118 @@ class RecommendationResult:
     cache_hit: bool
     retrieval_stats: RetrievalStats | None
     latency: LatencyBreakdown
+    scored_candidates: int | None = None
+
+
+@dataclass(frozen=True)
+class RetrievalRankingDiagnostics:
+    """Aggregate evidence from raw PYMK stages for one safe request.
+
+    Cache hits leave retrieval/scoring fields as ``None`` because those stages
+    did not execute for the request. This DTO never contains raw candidate IDs
+    or Trust decisions.
+    """
+
+    graph_version: str
+    requested_top_k: int
+    raw_top_m: int
+    raw_cache_hit: bool
+    stage_execution: str
+    first_hop_seen: int | None
+    first_hop_used: int | None
+    first_hop_capped: bool | None
+    second_hop_expansions: int | None
+    second_hop_seen: int | None
+    second_hop_used: int | None
+    second_hop_capped: bool | None
+    unique_candidates: int | None
+    candidates_returned: int | None
+    candidate_capped: bool | None
+    excluded_self: int | None
+    excluded_existing_connection: int | None
+    duplicate_candidates: int | None
+    retrieval_truncated: bool | None
+    scored_candidates: int | None
+    raw_ranked_count: int
+    returned_safe_count: int
+    first_hop_cap: int | None
+    second_hop_cap: int | None
+    candidate_cap: int | None
+    cache_lookup_ms: float
+    retrieval_ms: float | None
+    scoring_ms: float | None
+    total_backend_ms: float
+
+
+@dataclass(frozen=True)
+class PYMKRecommendationExplanation:
+    """Topology-only evidence for a candidate already admitted to Safe Top-K."""
+
+    candidate_id: Hashable
+    rank: int
+    score: float
+    graph_version: str
+    graph_semantics: str
+    ranking_method: str
+    common_neighbors: float
+    adamic_adar: float
+    jaccard: float
+    preferential_attachment: float
+    note: str = (
+        "Topology signals describe the active graph only; Trust eligibility is a separate gate."
+    )
+
+
+@dataclass(frozen=True)
+class PathEvidenceConfig:
+    """Bounded public aggregate evidence for one Safe two-hop candidate."""
+
+    max_sampled_paths: int = 5
+    first_hop_scan_cap: int = 250
+
+    def __post_init__(self) -> None:
+        if not 1 <= self.max_sampled_paths <= 10:
+            raise ValueError("max_sampled_paths must be between 1 and 10")
+        if self.first_hop_scan_cap < self.max_sampled_paths:
+            raise ValueError("first_hop_scan_cap must be at least max_sampled_paths")
+
+
+@dataclass(frozen=True)
+class SafeTwoHopPathSummary:
+    """Aggregate path evidence for a Safe candidate; never contains via-node IDs."""
+
+    candidate_id: Hashable
+    graph_version: str
+    graph_semantics: str
+    path_count_total: int | None
+    path_count_observed: int
+    sampled_path_count: int
+    scan_truncated: bool
+    truncated: bool
+    edge_type_evidence_available: bool = False
+    note: str = (
+        "Paths are aggregate directed graph evidence only; intermediate node IDs and edge types are not public."
+    )
+
+
+@dataclass(frozen=True)
+class EmptyResultContext:
+    """Evidence-backed neutral classification for an empty Safe Top-K result."""
+
+    status: str
+    graph_version: str
+    evidence: str
+
+
+@dataclass(frozen=True)
+class SafeRecommendationDetails:
+    """Optional PYMK-only detail produced after the unchanged Trust merge."""
+
+    safe_result: SafeRecommendationResult
+    diagnostics: RetrievalRankingDiagnostics
+    explanations: tuple[PYMKRecommendationExplanation, ...]
+    path_summaries: tuple[SafeTwoHopPathSummary, ...] = ()
+    empty_result_context: EmptyResultContext | None = None
 
 
 class RecommendationEngine:
@@ -86,6 +205,7 @@ class RecommendationEngine:
         cache: RecommendationCache | None = None,
         cache_ttl_seconds: float = 300.0,
         active_bundle_getter: Callable[[], ArtifactBundle | None] | None = None,
+        path_evidence_config: PathEvidenceConfig | None = None,
     ):
         if cache_ttl_seconds <= 0:
             raise ValueError("cache_ttl_seconds must be positive")
@@ -96,6 +216,7 @@ class RecommendationEngine:
         self._cache = cache or NoOpRecommendationCache()
         self._cache_ttl_seconds = cache_ttl_seconds
         self._active_bundle_getter = active_bundle_getter
+        self._path_evidence_config = path_evidence_config or PathEvidenceConfig()
         self._retrieval_config_hash = self._config_hash(asdict(self._retrieval_config))
 
     def recommend(
@@ -160,6 +281,7 @@ class RecommendationEngine:
                     retrieval_ms=0.0,
                     scoring_ms=0.0,
                     total_ms=self._elapsed_ms(started_at),
+                    cache_lookup_ms=cache_elapsed_ms,
                 ),
             )
 
@@ -187,7 +309,8 @@ class RecommendationEngine:
             ranking_config_hash=ranking_config_hash,
         )
         self._cache_set(cache_key, payload)
-        cache_elapsed_ms += self._elapsed_ms(cache_write_started_at)
+        cache_write_elapsed_ms = self._elapsed_ms(cache_write_started_at)
+        cache_elapsed_ms += cache_write_elapsed_ms
         return RecommendationResult(
             user_id=user_id,
             recommendations=recommendations[:top_k],
@@ -202,7 +325,10 @@ class RecommendationEngine:
                 retrieval_ms=retrieval_elapsed_ms,
                 scoring_ms=scoring_elapsed_ms,
                 total_ms=self._elapsed_ms(started_at),
+                cache_lookup_ms=cache_elapsed_ms - cache_write_elapsed_ms,
+                cache_write_ms=cache_write_elapsed_ms,
             ),
+            scored_candidates=len(retrieval.candidate_ids),
         )
 
     def recommend_safe(
@@ -231,6 +357,69 @@ class RecommendationEngine:
             top_m=effective_top_m,
         )
         return SafeTopKMerger(trust_policy).merge(raw_result, top_k, trust_provider)
+
+    def recommend_safe_details(
+        self,
+        user_id: Hashable,
+        top_k: int,
+        *,
+        trust_provider: TrustEligibilityProvider,
+        trust_policy: TrustPolicy | None = None,
+        top_m: int | None = None,
+        include_explanations: bool = False,
+        include_path_summaries: bool = False,
+        include_empty_result_context: bool = False,
+    ) -> SafeRecommendationDetails:
+        """Return opt-in aggregate diagnostics and Safe Top-K explanations.
+
+        Trust is still invoked for every request, including raw-cache hits. The
+        extra topology calculation runs only when explanations are requested
+        and only for candidates already admitted to Safe Top-K.
+        """
+
+        from src.serving.trust_boundary import SafeTopKMerger
+
+        if top_k < 0:
+            raise ValueError("top_k must be non-negative")
+        started_at = time.perf_counter()
+        effective_top_m = self._effective_top_m(top_k, top_m)
+        raw_result = self.recommend(
+            user_id,
+            top_k=effective_top_m,
+            top_m=effective_top_m,
+        )
+        safe_result = SafeTopKMerger(trust_policy).merge(
+            raw_result, top_k, trust_provider
+        )
+        explanations = (
+            self._explain_safe_recommendations(raw_result, safe_result)
+            if include_explanations
+            else ()
+        )
+        path_summaries = (
+            self._summarize_safe_two_hop_paths(raw_result, safe_result)
+            if include_path_summaries
+            else ()
+        )
+        empty_result_context = (
+            self._classify_empty_safe_result(raw_result, safe_result)
+            if include_empty_result_context
+            else None
+        )
+        diagnostics = self._build_diagnostics(
+            raw_result,
+            safe_result,
+            requested_top_k=top_k,
+            raw_top_m=effective_top_m,
+            total_backend_ms=self._elapsed_ms(started_at),
+        )
+        return SafeRecommendationDetails(
+            safe_result,
+            diagnostics,
+            explanations,
+            path_summaries,
+            empty_result_context,
+        )
 
     def build_cache_key(
         self,
@@ -370,6 +559,185 @@ class RecommendationEngine:
         return tuple(
             Recommendation(candidate_id=item.candidate_id, score=item.score, rank=rank)
             for rank, item in enumerate(ranked, start=1)
+        )
+
+    def _explain_safe_recommendations(
+        self,
+        raw_result: RecommendationResult,
+        safe_result: SafeRecommendationResult,
+    ) -> tuple[PYMKRecommendationExplanation, ...]:
+        """Compute actual topology features against the exact raw graph version."""
+
+        if not safe_result.recommendations:
+            return ()
+        bundle = self._bundle_for_version(raw_result.graph_version)
+        candidate_ids = [item.candidate_id for item in safe_result.recommendations]
+        scores = score_topology_candidates(
+            raw_result.user_id, candidate_ids, bundle.serving_index
+        )
+        graph_semantics = str(bundle.manifest.get("graph_semantics", "unknown"))
+        return tuple(
+            PYMKRecommendationExplanation(
+                candidate_id=item.candidate_id,
+                rank=item.rank,
+                score=item.score,
+                graph_version=raw_result.graph_version,
+                graph_semantics=graph_semantics,
+                ranking_method=raw_result.ranking_method,
+                common_neighbors=scores[item.candidate_id].common_neighbors,
+                adamic_adar=scores[item.candidate_id].adamic_adar,
+                jaccard=scores[item.candidate_id].jaccard,
+                preferential_attachment=scores[item.candidate_id].preferential_attachment,
+            )
+            for item in safe_result.recommendations
+        )
+
+    def _bundle_for_version(self, graph_version: str) -> ArtifactBundle:
+        active_bundle = self._active_bundle_getter() if self._active_bundle_getter else None
+        if active_bundle is not None and active_bundle.graph_version == graph_version:
+            return active_bundle
+        # Immutable artifacts let an explanation remain pinned to the exact
+        # snapshot that produced the raw result even after an active-version swap.
+        return self._artifact_store.load_version(graph_version)
+
+    def _summarize_safe_two_hop_paths(
+        self,
+        raw_result: RecommendationResult,
+        safe_result: SafeRecommendationResult,
+    ) -> tuple[SafeTwoHopPathSummary, ...]:
+        """Return bounded aggregate ``user -> middle -> candidate`` evidence.
+
+        The public endpoint deliberately omits middle-node IDs.  Counting uses
+        the exact immutable graph snapshot that supplied the raw result; the
+        configurable first-hop scan cap prevents a high-degree query node from
+        creating unbounded optional-debug work.
+        """
+
+        if not safe_result.recommendations:
+            return ()
+        bundle = self._bundle_for_version(raw_result.graph_version)
+        graph = bundle.serving_index
+        all_first_hops = graph.neighbors(raw_result.user_id)
+        scan_cap = self._path_evidence_config.first_hop_scan_cap
+        scanned_first_hops = all_first_hops[:scan_cap]
+        scan_truncated = len(all_first_hops) > len(scanned_first_hops)
+        graph_semantics = str(bundle.manifest["graph_semantics"])
+        max_sampled_paths = self._path_evidence_config.max_sampled_paths
+
+        summaries: list[SafeTwoHopPathSummary] = []
+        for item in safe_result.recommendations:
+            observed_count = sum(
+                graph.has_edge(middle_id, item.candidate_id)
+                for middle_id in scanned_first_hops
+            )
+            summaries.append(
+                SafeTwoHopPathSummary(
+                    candidate_id=item.candidate_id,
+                    graph_version=raw_result.graph_version,
+                    graph_semantics=graph_semantics,
+                    path_count_total=None if scan_truncated else observed_count,
+                    path_count_observed=observed_count,
+                    sampled_path_count=min(observed_count, max_sampled_paths),
+                    scan_truncated=scan_truncated,
+                    truncated=scan_truncated or observed_count > max_sampled_paths,
+                )
+            )
+        return tuple(summaries)
+
+    @staticmethod
+    def _classify_empty_safe_result(
+        raw_result: RecommendationResult,
+        safe_result: SafeRecommendationResult,
+    ) -> EmptyResultContext | None:
+        """Classify only facts observable at the PYMK/Trust boundary.
+
+        Unknown users remain an HTTP 404 before a result exists.  The method
+        intentionally does not infer that Trust filtered every candidate unless
+        the merger reports its explicit unavailable/fail-closed version.
+        """
+
+        if safe_result.recommendations:
+            return None
+        if safe_result.trust_version == "unavailable":
+            return EmptyResultContext(
+                status="TRUST_UNAVAILABLE_FAIL_CLOSED",
+                graph_version=raw_result.graph_version,
+                evidence="Trust provider raised an error and the existing policy failed closed.",
+            )
+        stats = raw_result.retrieval_stats
+        if stats is None:
+            return EmptyResultContext(
+                status="EMPTY_RAW_RESULT_UNSPECIFIED",
+                graph_version=raw_result.graph_version,
+                evidence="Raw cache contained no ranked candidates; retrieval stages were not rerun.",
+            )
+        if stats.first_hop_seen == 0:
+            return EmptyResultContext(
+                status="ISOLATED_USER",
+                graph_version=raw_result.graph_version,
+                evidence="User exists in the serving index but has no retrieval-semantic neighbors.",
+            )
+        if stats.candidates_before_cap == 0:
+            return EmptyResultContext(
+                status="NO_TWO_HOP_CANDIDATES",
+                graph_version=raw_result.graph_version,
+                evidence="Bounded traversal completed without an eligible two-hop candidate.",
+            )
+        if not raw_result.recommendations:
+            return EmptyResultContext(
+                status="NO_RANKED_CANDIDATES",
+                graph_version=raw_result.graph_version,
+                evidence="Retrieval returned candidates but topology ranking produced no raw result.",
+            )
+        return EmptyResultContext(
+            status="SAFE_RESULT_EMPTY_UNSPECIFIED",
+            graph_version=raw_result.graph_version,
+            evidence="Raw PYMK candidates existed, but none were returned by the unchanged Trust policy.",
+        )
+
+    def _build_diagnostics(
+        self,
+        raw_result: RecommendationResult,
+        safe_result: SafeRecommendationResult,
+        *,
+        requested_top_k: int,
+        raw_top_m: int,
+        total_backend_ms: float,
+    ) -> RetrievalRankingDiagnostics:
+        stats = raw_result.retrieval_stats
+        cache_hit = raw_result.cache_hit
+        return RetrievalRankingDiagnostics(
+            graph_version=raw_result.graph_version,
+            requested_top_k=requested_top_k,
+            raw_top_m=raw_top_m,
+            raw_cache_hit=cache_hit,
+            stage_execution="cache_hit" if cache_hit else "computed",
+            first_hop_seen=stats.first_hop_seen if stats else None,
+            first_hop_used=stats.first_hop_used if stats else None,
+            first_hop_capped=stats.first_hop_capped if stats else None,
+            second_hop_expansions=stats.second_hop_expansions if stats else None,
+            second_hop_seen=stats.second_hop_seen if stats else None,
+            second_hop_used=stats.second_hop_used if stats else None,
+            second_hop_capped=stats.second_hop_capped if stats else None,
+            unique_candidates=stats.candidates_before_cap if stats else None,
+            candidates_returned=stats.candidates_returned if stats else None,
+            candidate_capped=stats.candidate_capped if stats else None,
+            excluded_self=stats.excluded_self if stats else None,
+            excluded_existing_connection=(
+                stats.excluded_existing_connection if stats else None
+            ),
+            duplicate_candidates=stats.duplicate_candidates if stats else None,
+            retrieval_truncated=stats.truncated if stats else None,
+            scored_candidates=raw_result.scored_candidates,
+            raw_ranked_count=len(raw_result.recommendations),
+            returned_safe_count=len(safe_result.recommendations),
+            first_hop_cap=self._retrieval_config.first_hop_cap,
+            second_hop_cap=self._retrieval_config.second_hop_cap,
+            candidate_cap=self._retrieval_config.candidate_cap,
+            cache_lookup_ms=raw_result.latency.cache_lookup_ms or raw_result.latency.cache_ms,
+            retrieval_ms=None if cache_hit else raw_result.latency.retrieval_ms,
+            scoring_ms=None if cache_hit else raw_result.latency.scoring_ms,
+            total_backend_ms=total_backend_ms,
         )
 
     @staticmethod

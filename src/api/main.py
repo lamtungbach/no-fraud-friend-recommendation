@@ -10,7 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from src.api.config import ApiSettings
-from src.api.routers import health_router, recommendations_router, trust_router
+from src.api.routers import (
+    dataset_jobs_router,
+    health_router,
+    recommendations_router,
+    trust_router,
+)
 from src.api.runtime import ApiRuntime, build_runtime
 
 
@@ -26,7 +31,16 @@ async def lifespan(app: FastAPI):
             # ApiRuntime captures startup index failures for readiness; a custom
             # test runtime may choose the same behavior without blocking liveness.
             pass
+    retry_events = getattr(runtime, "retry_pending_dataset_events", None)
+    if callable(retry_events):
+        try:
+            retry_events()
+        except (OSError, RuntimeError, TypeError, ValueError):
+            pass
     yield
+    shutdown = getattr(runtime, "shutdown", None)
+    if callable(shutdown):
+        shutdown()
 
 
 def create_app(
@@ -49,6 +63,8 @@ def create_app(
         lifespan=lifespan,
     )
     app.state.runtime = runtime
+
+    # Cấu hình CORS
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
@@ -56,9 +72,12 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Đăng ký các Routers
     app.include_router(health_router)
     app.include_router(trust_router)
     app.include_router(recommendations_router)
+    app.include_router(dataset_jobs_router)
 
     @app.get("/metrics", include_in_schema=False)
     def metrics() -> Response:
@@ -81,5 +100,4 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run("src.api.main:app", host="0.0.0.0", port=8000, reload=True)  # nosec B104
