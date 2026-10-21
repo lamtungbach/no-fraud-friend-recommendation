@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements-ui.txt ./
+RUN pip install --no-cache-dir --root-user-action=ignore --upgrade pip && \
+    pip install --no-cache-dir --root-user-action=ignore -r requirements-ui.txt && \
+    useradd --create-home --uid 10001 appuser
+
+COPY --chown=appuser:appuser demo/ ./demo/
+COPY --chown=appuser:appuser .streamlit/ ./.streamlit/
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PYMK_API_URL=http://trust-service:8000
+
+EXPOSE 8501
+
+USER appuser
+
+CMD ["streamlit", "run", "demo/streamlit_app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]

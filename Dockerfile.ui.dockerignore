@@ -1,0 +1,6 @@
+**
+!requirements-ui.txt
+!demo/
+!demo/**
+!.streamlit/
+!.streamlit/**

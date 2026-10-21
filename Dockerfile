@@ -15,10 +15,9 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 COPY requirements-server.txt .
 RUN pip install --no-cache-dir -r requirements-server.txt
 
-# Copy mã nguồn, weights, artifacts và hồ sơ tín nhiệm CSV
+# Copy mã nguồn, artifacts và hồ sơ tín nhiệm CSV
 COPY src/ ./src/
 COPY artifacts/ ./artifacts/
-COPY weights/ ./weights/
 COPY data/mgtab_user_trust_profiles_v2.csv ./data/mgtab_user_trust_profiles_v2.csv
 
 ENV PYTHONUNBUFFERED=1 \
