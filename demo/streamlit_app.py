@@ -35,7 +35,7 @@ from demo.ui_state import (
 
 Result = TypeVar("Result")
 
-_PAGES = ("Khám phá gợi ý", "Phân tích PYMK", "Hệ thống & Batch")
+_PAGES = ("Khám phá gợi ý", "Phân tích PYMK", "Hồ sơ Trust", "Hệ thống & Batch")
 _EMPTY_RESULT_MESSAGES = {
     "ISOLATED_USER": "Tài khoản có trong graph nhưng chưa có kết nối phù hợp với retrieval hiện tại.",
     "NO_TWO_HOP_CANDIDATES": "Đã duyệt graph cục bộ nhưng không có ứng viên two-hop hợp lệ.",
@@ -95,6 +95,8 @@ def _reset_for_api_url(api_url: str) -> None:
         "recommendation_query_id",
         "selected_candidate_id",
         "dataset_job",
+        "trust_profile",
+        "trust_reasoning",
     ):
         st.session_state.pop(key, None)
     st.session_state["_api_url"] = api_url
@@ -376,6 +378,56 @@ def _render_analysis() -> None:
     st.caption("Không vẽ node/edge vì DTO chỉ công bố aggregate evidence, không công bố đường đi hoặc node trung gian.")
 
 
+def _render_trust(api_url: str) -> None:
+    st.header("Hồ sơ Trust & rủi ro bot")
+    st.caption("Tra cứu hồ sơ từ Trust Service theo User ID. Đây là dữ liệu thẩm định riêng, không phải quyết định của pipeline gợi ý cho một cặp người dùng.")
+    with st.form("trust-profile-form"):
+        user_id = st.number_input("User ID cần tra cứu", min_value=0, value=0, step=1)
+        submitted = st.form_submit_button("Tra cứu hồ sơ Trust", type="primary")
+    if submitted:
+        st.session_state.pop("trust_profile", None)
+        st.session_state.pop("trust_reasoning", None)
+        try:
+            with st.spinner("Đang tra cứu Trust Service…"):
+                st.session_state["trust_profile"] = call_api(api_url, lambda api: api.trust_profile(int(user_id)))
+        except (DemoApiError, ValueError) as error:
+            st.error(str(error))
+
+    profile = st.session_state.get("trust_profile")
+    if not isinstance(profile, dict):
+        st.info("Nhập User ID và tra cứu để xem hồ sơ Trust.")
+        return
+    st.subheader(f"User {profile['user_id']}")
+    score, bot, tier = st.columns(3)
+    score.metric("Trust score", f"{profile['trust_score']:.1f} / 100")
+    bot.metric("Bot risk (p_bot)", f"{profile['p_bot']:.1%}")
+    tier.metric("Recommendation tier", str(profile['recommendation_tier']))
+    st.write(f"**Quyết định của Trust Service:** {profile['decision']}")
+    if profile.get("ground_truth_label") is not None:
+        st.caption(f"Nhãn dữ liệu: {profile['ground_truth_label']} · Split: {profile.get('split_set', 'unknown')}")
+    st.markdown("#### Bốn trụ cột tín nhiệm")
+    for key, label in (
+        ("identity_auth", "Xác thực danh tính (S_auth)"),
+        ("interaction_health", "Tương tác lành mạnh (S_interact)"),
+        ("network_hygiene", "Mạng lưới (S_network)"),
+        ("content_safety", "An toàn nội dung (S_content)"),
+    ):
+        value = profile["pillars"][key]
+        st.progress(float(value), text=f"{label}: {value:.3f} / 1")
+    if st.button("Xem giải thích Trust", key="trust-reason-button"):
+        st.session_state.pop("trust_reasoning", None)
+        try:
+            st.session_state["trust_reasoning"] = call_api(api_url, lambda api: api.trust_reasoning(profile["user_id"]))
+        except (DemoApiError, ValueError) as error:
+            st.error(str(error))
+    reasoning = st.session_state.get("trust_reasoning")
+    if isinstance(reasoning, dict):
+        st.markdown("#### Giải thích theo quy tắc")
+        for step in reasoning["reasoning_trace"]:
+            st.write(f"- {step}")
+        st.caption(f"Quyết định: {reasoning.get('decision', 'Không công bố')}")
+
+
 def _render_job(job: DatasetJob) -> None:
     status = job.status.upper()
     if status == "PENDING":
@@ -450,5 +502,7 @@ if page == "Khám phá gợi ý":
     _render_discover(api_url)
 elif page == "Phân tích PYMK":
     _render_analysis()
+elif page == "Hồ sơ Trust":
+    _render_trust(api_url)
 else:
     _render_system_batch(api_url)

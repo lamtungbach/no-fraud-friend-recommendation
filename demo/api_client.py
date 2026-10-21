@@ -96,6 +96,31 @@ class PymkApiClient:
             self._request_json("POST", "/v1/recommendations", json=request_payload)
         )
 
+    def trust_profile(self, user_id: int) -> dict[str, Any]:
+        if user_id < 0:
+            raise ValueError("User ID phải không âm")
+        payload = self._get_json(f"/api/v1/trust/{user_id}")
+        pillars = payload.get("pillars")
+        required = {"user_id", "trust_score", "p_bot", "recommendation_tier", "decision"}
+        pillar_names = {"identity_auth", "interaction_health", "network_hygiene", "content_safety"}
+        if (not required.issubset(payload) or payload["user_id"] != user_id
+                or not isinstance(pillars, dict) or not pillar_names.issubset(pillars)):
+            raise DemoApiError("Response hồ sơ Trust không đúng định dạng")
+        for value, maximum in [(payload["trust_score"], 100), (payload["p_bot"], 1),
+                               *((pillars[name], 1) for name in pillar_names)]:
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= maximum:
+                raise DemoApiError("Response hồ sơ Trust có điểm không hợp lệ")
+        return payload
+
+    def trust_reasoning(self, user_id: int) -> dict[str, Any]:
+        if user_id < 0:
+            raise ValueError("User ID phải không âm")
+        payload = self._request_json("POST", "/api/v1/trust/reason", json={"user_id": user_id})
+        trace = payload.get("reasoning_trace")
+        if payload.get("user_id") != user_id or not isinstance(trace, list) or not all(isinstance(x, str) for x in trace):
+            raise DemoApiError("Response giải thích Trust không đúng định dạng")
+        return payload
+
     def create_mgtab_job(self) -> DatasetJob:
         return _dataset_job(self._request_json("POST", "/datasets/jobs", json={"dataset_id": "mgtab"}))
 

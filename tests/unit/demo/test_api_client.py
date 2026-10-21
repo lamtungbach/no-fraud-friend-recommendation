@@ -165,3 +165,33 @@ def test_invalid_response_is_not_rendered_as_a_recommendation():
 
     with pytest.raises(DemoApiError, match="thiếu trường"):
         client.recommend(7, 3)
+
+
+def test_trust_profile_and_reasoning_use_existing_trust_api():
+    profile = {
+        "user_id": 7, "trust_score": 82.5, "p_bot": 0.12,
+        "recommendation_tier": "TIER_1_VERIFIED_SAFE", "decision": "safe",
+        "pillars": {"identity_auth": 0.9, "interaction_health": 0.8,
+                    "network_hygiene": 0.7, "content_safety": 0.6},
+    }
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            assert request.url.path == "/api/v1/trust/7"
+            return httpx.Response(200, json=profile)
+        assert request.url.path == "/api/v1/trust/reason"
+        assert json.loads(request.content) == {"user_id": 7}
+        return httpx.Response(200, json={"user_id": 7, "reasoning_trace": ["low risk"]})
+
+    client = _client(handler)
+    assert client.trust_profile(7) == profile
+    assert client.trust_reasoning(7)["reasoning_trace"] == ["low risk"]
+
+
+def test_trust_profile_rejects_bad_data_and_propagates_missing_user():
+    malformed = {"user_id": 7, "trust_score": 99, "p_bot": 0.1,
+                 "recommendation_tier": "tier", "decision": "ok", "pillars": {}}
+    with pytest.raises(DemoApiError, match="định dạng"):
+        _client(lambda request: httpx.Response(200, json=malformed)).trust_profile(7)
+    with pytest.raises(DemoApiError) as failure:
+        _client(lambda request: httpx.Response(404, json={"detail": "not found"})).trust_profile(7)
+    assert failure.value.status_code == 404
