@@ -1,55 +1,55 @@
-"""Script build and activate MGTAB graph artifact."""
+"""Submit a real MGTAB Phase 08 job to a running local API and poll its state."""
 
+from __future__ import annotations
+
+import argparse
 import sys
 import time
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from src.data.adapters import MGTABAdapter  # noqa: E402
-from src.graph import build_pymk_graph_view  # noqa: E402
-from src.serving import (  # noqa: E402
-    ActiveGraphRegistry,
-    LocalArtifactStore,
-    ServingGraphIndex,
-)
+import httpx
 
 
-def main() -> None:
-    start_time = time.perf_counter()
-    raw_dir = ROOT / "data" / "raw" / "MGTAB"
-    artifact_root = ROOT / "artifacts"
-    registry_root = artifact_root / "registry"
-    version = "mgtab-v1"
+def _arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--api-url", default="http://127.0.0.1:8000")
+    parser.add_argument("--graph-version", default=None)
+    parser.add_argument("--poll-seconds", type=float, default=2.0)
+    parser.add_argument("--timeout-seconds", type=float, default=900.0)
+    return parser.parse_args()
 
-    print(f"=== Starting build for graph artifact version: {version} ===")
-    print(f"1. Loading MGTAB dataset from: {raw_dir}")
-    adapter = MGTABAdapter(raw_dir)
-    graph = adapter.transform()
-    adapter.validate(graph)
-    print(f"   -> Valid canonical graph: {graph.num_nodes} nodes, {graph.num_edges} edges")
 
-    print("2. Building Directed Graph View & CSR Serving Index...")
-    view = build_pymk_graph_view(graph, mode="directed")
-    index = ServingGraphIndex.from_graph_view(view)
-    print("   -> CSR Index built successfully.")
-
-    print(f"3. Persisting Immutable Artifact: {version}...")
-    store = LocalArtifactStore(artifact_root)
-    bundle = store.save_version(version, graph, view, index, dataset_id="MGTAB")
-    checksum = str(bundle.manifest.get("checksum", ""))[:12]
-    print(f"   -> Saved successfully! Checksum: {checksum}...")
-
-    print(f"4. Activating {version} in Active Registry...")
-    registry = ActiveGraphRegistry(store, registry_root)
-    registry.activate(version)
-    print(f"   -> Active Graph pointer is now: {registry.get_active_version()}")
-
-    elapsed = time.perf_counter() - start_time
-    print(f"=== All done in {elapsed:.2f} seconds! ===")
+def main() -> int:
+    args = _arguments()
+    api_url = args.api_url.rstrip("/")
+    payload: dict[str, object] = {"dataset_id": "mgtab"}
+    if args.graph_version:
+        payload["graph_version"] = args.graph_version
+    try:
+        with httpx.Client(timeout=15.0) as client:
+            created = client.post(f"{api_url}/datasets/jobs", json=payload)
+            created.raise_for_status()
+            job = created.json()
+            job_id = job["job_id"]
+            print(f"MGTAB job accepted: {job_id} ({job['graph_version']})")
+            deadline = time.monotonic() + args.timeout_seconds
+            while time.monotonic() < deadline:
+                response = client.get(f"{api_url}/datasets/jobs/{job_id}")
+                response.raise_for_status()
+                job = response.json()
+                print(f"status={job['status']} updated_at={job['updated_at']}")
+                if job["status"] == "READY":
+                    print(f"Activated graph version: {job['graph_version']}")
+                    return 0
+                if job["status"] == "FAILED":
+                    print(f"Job failed safely: {job.get('error_code') or 'unknown'}", file=sys.stderr)
+                    return 1
+                time.sleep(args.poll_seconds)
+    except (httpx.HTTPError, KeyError, TypeError, ValueError) as error:
+        print(f"Could not run MGTAB job: {type(error).__name__}", file=sys.stderr)
+        return 2
+    print("Timed out waiting for MGTAB job", file=sys.stderr)
+    return 3
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

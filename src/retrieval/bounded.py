@@ -45,6 +45,14 @@ class RetrievalStats:
     candidates_before_cap: int
     candidates_returned: int
     truncated: bool
+    first_hop_capped: bool = False
+    second_hop_capped: bool = False
+    candidate_capped: bool = False
+    second_hop_seen: int = 0
+    second_hop_used: int = 0
+    excluded_self: int = 0
+    excluded_existing_connection: int = 0
+    duplicate_candidates: int = 0
 
 
 @dataclass(frozen=True)
@@ -85,20 +93,32 @@ def retrieve_bounded_two_hop_candidates(
     candidates: list[Hashable] = []
     seen_candidates: set[Hashable] = set()
     second_hop_expansions = 0
+    second_hop_seen = 0
+    second_hop_used = 0
+    excluded_self = 0
+    excluded_existing_connection = 0
+    duplicate_candidates = 0
     second_hop_truncated = False
 
     for middle in used_first_hops:
-        middle_neighbors, was_truncated = _take_cap(
-            graph.neighbors(middle), config.second_hop_cap
-        )
+        all_middle_neighbors = graph.neighbors(middle)
+        second_hop_seen += len(all_middle_neighbors)
+        middle_neighbors, was_truncated = _take_cap(all_middle_neighbors, config.second_hop_cap)
+        second_hop_used += len(middle_neighbors)
         second_hop_truncated = second_hop_truncated or was_truncated
         for candidate in middle_neighbors:
             second_hop_expansions += 1
-            if candidate == user_id or candidate in direct_neighbors:
+            if candidate == user_id:
+                excluded_self += 1
                 continue
-            if candidate not in seen_candidates:
-                seen_candidates.add(candidate)
-                candidates.append(candidate)
+            if candidate in direct_neighbors:
+                excluded_existing_connection += 1
+                continue
+            if candidate in seen_candidates:
+                duplicate_candidates += 1
+                continue
+            seen_candidates.add(candidate)
+            candidates.append(candidate)
 
     returned_candidates, candidate_truncated = _take_cap(
         tuple(candidates), config.candidate_cap
@@ -110,5 +130,13 @@ def retrieve_bounded_two_hop_candidates(
         candidates_before_cap=len(candidates),
         candidates_returned=len(returned_candidates),
         truncated=first_hop_truncated or second_hop_truncated or candidate_truncated,
+        first_hop_capped=first_hop_truncated,
+        second_hop_capped=second_hop_truncated,
+        candidate_capped=candidate_truncated,
+        second_hop_seen=second_hop_seen,
+        second_hop_used=second_hop_used,
+        excluded_self=excluded_self,
+        excluded_existing_connection=excluded_existing_connection,
+        duplicate_candidates=duplicate_candidates,
     )
     return RetrievalResult(candidate_ids=returned_candidates, stats=stats)

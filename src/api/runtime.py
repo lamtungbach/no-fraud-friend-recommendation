@@ -8,10 +8,15 @@ from pathlib import Path
 
 from src.api.config import ApiSettings
 from src.api.observability import ObservedTrustEligibilityProvider
+from src.data.adapters import MGTABAdapter
 from src.pipeline import (
     ActiveIndexHolder,
+    BatchOrchestrator,
     GraphIndexReadyConsumer,
     GraphIndexReadyEvent,
+    InMemoryEventPublisher,
+    LocalDatasetJobService,
+    PostgresMetadataRepository,
     ServingIndexReloader,
 )
 from src.ranking import RankingConfig
@@ -22,6 +27,7 @@ from src.serving import (
     LocalArtifactStore,
     MockTrustProvider,
     NoOpRecommendationCache,
+    PathEvidenceConfig,
     RecommendationCache,
     RecommendationEngine,
     RedisRecommendationCache,
@@ -47,6 +53,7 @@ class ApiRuntime:
     graph_index_reloader: ServingIndexReloader
     trust_error: str | None = None
     active_index_error: str | None = None
+    dataset_job_service: LocalDatasetJobService | None = None
 
     def warm_active_index(self) -> None:
         """Hydrate the in-memory serving snapshot from the durable registry."""
@@ -71,6 +78,17 @@ class ApiRuntime:
             self.graph_index_reloader.reload,
             active_version_provider=active_version_provider,
         )
+
+    def retry_pending_dataset_events(self) -> int:
+        """Retry durable local outbox records after process startup."""
+
+        if self.dataset_job_service is None:
+            return 0
+        return self.dataset_job_service.retry_pending_events()
+
+    def shutdown(self) -> None:
+        if self.dataset_job_service is not None:
+            self.dataset_job_service.shutdown()
 
     def readiness(self) -> tuple[bool, list[str], str | None]:
         """Validate the active artifact/index and Trust runtime at request time."""
@@ -123,6 +141,10 @@ def build_runtime(
         cache=cache,
         cache_ttl_seconds=settings.cache_ttl_seconds,
         active_bundle_getter=holder.get,
+        path_evidence_config=PathEvidenceConfig(
+            max_sampled_paths=settings.path_evidence_max_paths,
+            first_hop_scan_cap=settings.path_evidence_scan_cap,
+        ),
     )
     policy = TrustPolicy()
     service: TrustService | None = None
@@ -160,6 +182,8 @@ def build_runtime(
         graph_index_reloader=reloader,
         trust_error=trust_error,
     )
+    if settings.phase08_admin_enabled:
+        runtime.dataset_job_service = _build_dataset_job_service(settings, runtime)
     try:
         runtime.warm_active_index()
     except (OSError, RuntimeError, TypeError, ValueError) as error:
@@ -167,6 +191,24 @@ def build_runtime(
         # a registry pointer whose index could not be loaded.
         runtime.active_index_error = type(error).__name__
     return runtime
+
+
+def _build_dataset_job_service(settings: ApiSettings, runtime: ApiRuntime) -> LocalDatasetJobService:
+    """Compose the opt-in local admin path with persistent metadata/outbox."""
+
+    if settings.postgres_dsn is None:  # guarded by ApiSettings, defensive for injected settings
+        raise ValueError("POSTGRES_DSN is required for Phase 08 dataset jobs")
+    metadata = PostgresMetadataRepository.from_dsn(settings.postgres_dsn)
+    # PostgreSQL is the lifecycle authority.  The in-process reloader refuses
+    # an event that no longer matches the durable active version.
+    runtime.set_active_version_provider(metadata.active_version)
+    publisher = InMemoryEventPublisher()
+    publisher.subscribe(runtime.consume_graph_index_ready)
+    orchestrator = BatchOrchestrator(metadata, runtime.artifact_store, publisher)
+    return LocalDatasetJobService(
+        orchestrator,
+        {"mgtab": lambda: MGTABAdapter(settings.mgtab_dataset_dir)},
+    )
 
 
 def _build_cache(settings: ApiSettings) -> RecommendationCache:

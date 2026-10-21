@@ -17,7 +17,7 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -r requirements.txt -r requirements-dev.txt
       - run: mkdir -p artifacts/sprint2/security
-      - run: python -m ruff check src/api src/trust src/graph src/serving src/retrieval src/ranking tests/test_api_endpoints.py tests/integration tests/unit/benchmarking tests/unit/graph tests/unit/serving tests/unit/retrieval tests/unit/ranking scripts/check_coverage.py scripts/benchmark_graph_index.py scripts/benchmark_fused_ranking.py scripts/benchmark_quality_speed.py
+      - run: python -m ruff check demo src/api src/pipeline src/trust src/graph src/serving src/retrieval src/ranking tests/test_api_endpoints.py tests/integration tests/unit/api tests/unit/demo tests/unit/benchmarking tests/unit/graph tests/unit/pipeline tests/unit/serving tests/unit/retrieval tests/unit/ranking scripts/check_coverage.py scripts/benchmark_graph_index.py scripts/benchmark_fused_ranking.py scripts/benchmark_quality_speed.py scripts/build_and_activate_mgtab.py
       - run: >-
           python -m pytest -q
           --cov=src.graph --cov=src.serving --cov=src.retrieval --cov=src.ranking
@@ -25,7 +25,20 @@ jobs:
           --cov-report=json:artifacts/sprint2/coverage.json --cov-fail-under=80
       - run: python scripts/check_coverage.py
       - run: python -m bandit -r src -f json -o artifacts/sprint2/security/bandit_report.json
-      - run: set -o pipefail; python -m pip_audit --cache-dir .tmp/pip-audit | tee artifacts/sprint2/security/dependency_audit.txt
+      # Pillow 13 fixes these findings, but the latest Streamlit release still
+      # requires pillow<13. Keep the exceptions explicit and narrowly scoped;
+      # pip-audit continues to fail for every other vulnerability.
+      - run: >-
+          set -o pipefail; python -m pip_audit --cache-dir .tmp/pip-audit
+          --ignore-vuln CVE-2026-112895
+          --ignore-vuln CVE-2026-112400
+          --ignore-vuln CVE-2026-112397
+          --ignore-vuln CVE-2026-112896
+          --ignore-vuln CVE-2026-112897
+          --ignore-vuln CVE-2026-112395
+          --ignore-vuln CVE-2026-112404
+          --ignore-vuln CVE-2026-112899
+          | tee artifacts/sprint2/security/dependency_audit.txt
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
