@@ -38,7 +38,7 @@ def recommend_safe(
 
     if payload.top_k > runtime.settings.max_top_k:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"top_k must be less than or equal to configured MAX_TOP_K ({runtime.settings.max_top_k})",
         )
     ready, _, _ = runtime.readiness()

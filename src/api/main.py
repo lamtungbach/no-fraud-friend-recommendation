@@ -99,5 +99,13 @@ def create_app(
 app = create_app()
 
 if __name__ == "__main__":
+    import os
+
     import uvicorn
-    uvicorn.run("src.api.main:app", host="0.0.0.0", port=8000, reload=True)  # nosec B104
+
+    uvicorn.run(
+        "src.api.main:app",
+        host=os.getenv("API_HOST", "127.0.0.1"),
+        port=8000,
+        reload=True,
+    )

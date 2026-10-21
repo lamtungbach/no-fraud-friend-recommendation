@@ -50,7 +50,10 @@ def create_dataset_job(payload: DatasetJobCreateRequest, request: Request) -> Da
     try:
         job = service.create_and_schedule(job_request)
     except (KeyError, ValueError) as error:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error)) from error
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
     return _response(job)
 
 
