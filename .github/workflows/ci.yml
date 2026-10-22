@@ -25,19 +25,8 @@ jobs:
           --cov-report=json:artifacts/sprint2/coverage.json --cov-fail-under=80
       - run: python scripts/check_coverage.py
       - run: python -m bandit -r src -f json -o artifacts/sprint2/security/bandit_report.json
-      # Pillow 13 fixes these findings, but the latest Streamlit release still
-      # requires pillow<13. Keep the exceptions explicit and narrowly scoped;
-      # pip-audit continues to fail for every other vulnerability.
       - run: >-
           set -o pipefail; python -m pip_audit --cache-dir .tmp/pip-audit
-          --ignore-vuln CVE-2026-112895
-          --ignore-vuln CVE-2026-112400
-          --ignore-vuln CVE-2026-112397
-          --ignore-vuln CVE-2026-112896
-          --ignore-vuln CVE-2026-112897
-          --ignore-vuln CVE-2026-112395
-          --ignore-vuln CVE-2026-112404
-          --ignore-vuln CVE-2026-112899
           | tee artifacts/sprint2/security/dependency_audit.txt
       - uses: gitleaks/gitleaks-action@v2
         env:

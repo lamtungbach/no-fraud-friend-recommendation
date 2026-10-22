@@ -55,17 +55,7 @@ jobs:
 
       - name: Dependency Vulnerability Scan (pip-audit)
         run: |
-          # Pillow 13 fixes these findings, but the latest Streamlit release
-          # still requires pillow<13. All other findings remain blocking.
-          pip-audit -r requirements.txt \
-            --ignore-vuln CVE-2026-112895 \
-            --ignore-vuln CVE-2026-112400 \
-            --ignore-vuln CVE-2026-112397 \
-            --ignore-vuln CVE-2026-112896 \
-            --ignore-vuln CVE-2026-112897 \
-            --ignore-vuln CVE-2026-112395 \
-            --ignore-vuln CVE-2026-112404 \
-            --ignore-vuln CVE-2026-112899
+          pip-audit -r requirements.txt
 
       - name: Run Automated Test Suite
         run: |
