@@ -12,3 +12,7 @@ secondaryBackgroundColor = "#111B2E"
 
 [server]
 headless = true
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false

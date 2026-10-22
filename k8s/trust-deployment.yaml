@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: trust-api
-        image: no-fraud-trust-service:latest
+        image: no-fraud-trust-service:redis-v1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
@@ -24,6 +24,9 @@ spec:
         envFrom:
         - configMapRef:
             name: trust-service-config
+        env:
+        - name: REDIS_URL
+          value: redis://redis:6379/0
         resources:
           requests:
             memory: "512Mi"
@@ -39,7 +42,7 @@ spec:
           periodSeconds: 15
         readinessProbe:
           httpGet:
-            path: /health
+            path: /health/ready
             port: 8000
           initialDelaySeconds: 15
           periodSeconds: 10
